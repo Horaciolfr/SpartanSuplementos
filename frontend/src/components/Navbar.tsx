@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ShoppingCart, Package, LogOut, User as UserIcon, Home } from 'lucide-react';
+import { storeLogo } from '../utils/productImages';
 
 export const Navbar: React.FC = () => {
   const { user, role, logout } = useAuth();
@@ -24,13 +25,20 @@ export const Navbar: React.FC = () => {
     <header className="sticky top-0 z-40 w-full border-b border-[#1A1A1A] bg-[#131313]/95 backdrop-blur-md">
       <div className="mx-auto flex h-20 max-w-[1280px] items-center justify-between px-6">
         {/* Logo / Brand */}
-        <Link to="/" className="flex items-center gap-2 group">
-          <span className="font-['Anybody'] text-2xl md:text-3xl text-[#f2e500] italic font-black uppercase tracking-tighter group-hover:scale-105 transition-transform">
-            SPARTAN
-          </span>
-          <span className="text-[10px] font-['JetBrains_Mono'] tracking-widest text-[#ccc7ab] uppercase ml-1 hidden sm:inline">
-            ERP
-          </span>
+        <Link to="/" className="flex items-center gap-3 group">
+          <img
+            src={storeLogo}
+            alt="Spartan Suplementos Bolivia"
+            className="h-12 w-auto object-contain group-hover:scale-105 transition-transform duration-300"
+          />
+          <div className="hidden sm:block">
+            <span className="font-['Anybody'] text-xl text-[#f2e500] italic font-black uppercase tracking-tighter block leading-none">
+              SPARTAN
+            </span>
+            <span className="text-[9px] font-['JetBrains_Mono'] tracking-widest text-[#ccc7ab] uppercase block">
+              Suplementos Bolivia
+            </span>
+          </div>
         </Link>
 
         {/* Navigation Links */}

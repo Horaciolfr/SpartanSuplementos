@@ -22,6 +22,8 @@ class ProductoBase(BaseModel):
     stock_actual: int = Field(default=0, ge=0)
     stock_seguridad: int = Field(default=0, ge=0)
     estado_activo: bool = True
+    imagen_url: Optional[str] = None
+    descripcion: Optional[str] = None
 
 class ProductoCreate(ProductoBase):
     pass
@@ -34,6 +36,8 @@ class ProductoUpdate(BaseModel):
     stock_actual: Optional[int] = Field(default=None, ge=0)
     stock_seguridad: Optional[int] = Field(default=None, ge=0)
     estado_activo: Optional[bool] = None
+    imagen_url: Optional[str] = None
+    descripcion: Optional[str] = None
 
 class ProductoOut(ProductoBase):
     id_producto: int

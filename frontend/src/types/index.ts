@@ -28,6 +28,8 @@ export interface Producto {
   stock_actual: number;
   stock_seguridad: number;
   estado_activo: boolean;
+  imagen_url?: string | null;
+  descripcion?: string | null;
   categoria?: Categoria;
 }
 

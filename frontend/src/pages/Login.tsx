@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getErrorMessage } from '../utils/errors';
-import { ArrowRight, AlertCircle, HelpCircle, Shield, Home } from 'lucide-react';
+import { ArrowRight, AlertCircle, HelpCircle, Home } from 'lucide-react';
+import { storeLogo } from '../utils/productImages';
+import heroCinematic from '../assets/hero_cinematic.jpg';
 
 export const Login: React.FC = () => {
   const [username, setUsername] = useState('');
@@ -38,26 +40,33 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col font-['Hanken_Grotesk'] antialiased selection:bg-[#f2e500] selection:text-black relative bg-black text-[#e2e2e2]">
-      {/* Background Image / Texture */}
-      <div
-        className="fixed inset-0 z-0 opacity-25 pointer-events-none bg-cover bg-center"
-        style={{
-          backgroundImage:
-            "url('https://lh3.googleusercontent.com/aida-public/AB6AXuCGeRvFsPC72vt9eWBxqDKulHotYoMDhZou7cj931RlM3cHH24Ge5jFlUPTx5ada_Fz7LRc4NKJg1ifBhSeB7US0JGvjAtHwh3zFJCoypHga9pYjN4mSlw0Ln6V17GM6LJC7323lkzuEYFuHGkby4R88es6DIfRlBlY2-k1TSC1kPbeokd5PeHeV12jKbPMIMn-kzgX4zsg95D0o_hAzNacUNb-8QpVOAp4XBVjzhzR2JK59ASN4dsr')",
-        }}
-      />
-      <div className="fixed inset-0 z-0 bg-gradient-to-t from-black via-black/85 to-black pointer-events-none" />
+    <div className="min-h-screen flex flex-col font-['Hanken_Grotesk'] antialiased selection:bg-[#f2e500] selection:text-black relative bg-[#080808] text-[#e2e2e2]">
+      {/* Background Cinematic Texture */}
+      <div className="fixed inset-0 z-0 opacity-30 pointer-events-none overflow-hidden">
+        <img
+          src={heroCinematic}
+          alt="Spartan Background"
+          className="w-full h-full object-cover grayscale mix-blend-luminosity scale-105"
+        />
+      </div>
+      <div className="fixed inset-0 z-0 bg-gradient-to-t from-[#080808] via-[#080808]/90 to-[#080808]/80 pointer-events-none" />
 
       {/* Top Header */}
-      <header className="w-full h-20 border-b border-[#1A1A1A] flex justify-between items-center px-6 sm:px-12 relative z-10 bg-black/60 backdrop-blur-md">
-        <Link to="/" className="flex items-center gap-2 group">
-          <span className="font-['Anybody'] text-2xl sm:text-3xl text-[#f2e500] italic font-black uppercase tracking-tighter group-hover:scale-105 transition-transform">
-            SPARTAN
-          </span>
-          <span className="text-[10px] font-['JetBrains_Mono'] tracking-widest text-gray-500 uppercase ml-1 hidden sm:inline">
-            Bolivia
-          </span>
+      <header className="w-full h-20 border-b border-[#1A1A1A] flex justify-between items-center px-6 sm:px-12 relative z-10 bg-black/70 backdrop-blur-xl">
+        <Link to="/" className="flex items-center gap-3 group">
+          <img
+            src={storeLogo}
+            alt="Spartan Suplementos Bolivia"
+            className="h-12 w-auto object-contain group-hover:scale-105 transition-transform duration-300"
+          />
+          <div className="hidden sm:block">
+            <span className="font-['Anybody'] text-xl text-[#f2e500] italic font-black uppercase tracking-tighter block leading-none">
+              SPARTAN
+            </span>
+            <span className="text-[9px] font-['JetBrains_Mono'] tracking-widest text-[#ccc7ab] uppercase block">
+              Suplementos Bolivia
+            </span>
+          </div>
         </Link>
         <div className="flex items-center gap-6">
           <Link
@@ -68,11 +77,11 @@ export const Login: React.FC = () => {
             <span>Inicio</span>
           </Link>
           <a
-            className="text-[#ccc7ab] hover:text-[#f2e500] transition-colors flex items-center gap-1.5 text-xs font-['JetBrains_Mono'] uppercase tracking-wider"
+            className="text-[#ccc7ab] hover:text-[#f2e500] transition-colors flex items-center gap-1.5 text-xs font-['JetBrains_Mono'] uppercase tracking-wider cursor-pointer"
             href="#soporte"
             onClick={(e) => {
               e.preventDefault();
-              alert('Para asistencia técnica o consultas de acceso, contacta al administrador del sistema.');
+              alert('Para asistencia técnica o credenciales de acceso, contacta al administrador del sistema Spartan Bolivia.');
             }}
           >
             <HelpCircle className="h-4 w-4" />
@@ -88,9 +97,11 @@ export const Login: React.FC = () => {
           <div className="absolute top-0 left-0 right-0 h-1 bg-[#f2e500]" />
 
           <div className="mb-8 text-center">
-            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center border border-[#f2e500]/40 bg-black text-[#f2e500]">
-              <Shield className="h-6 w-6" />
-            </div>
+            <img
+              src={storeLogo}
+              alt="Spartan Logo"
+              className="h-20 w-auto mx-auto mb-4 object-contain"
+            />
             <h1 className="font-['Anybody'] text-3xl sm:text-4xl text-white uppercase font-bold tracking-tight mb-1">
               Ingresar
             </h1>

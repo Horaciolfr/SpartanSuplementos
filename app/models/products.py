@@ -30,6 +30,8 @@ class Producto(Base):
     stock_actual: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     stock_seguridad: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     estado_activo: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    imagen_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    descripcion: Mapped[str | None] = mapped_column(String(1000), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     categoria: Mapped["CategoriaProducto"] = relationship("CategoriaProducto", back_populates="productos", lazy="selectin")

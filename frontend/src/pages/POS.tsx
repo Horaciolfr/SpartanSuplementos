@@ -17,7 +17,7 @@ import {
   ShieldCheck,
   Tag,
 } from 'lucide-react';
-import { getProductImage } from '../utils/productImages';
+import { getProductImage, storeLogo } from '../utils/productImages';
 
 interface CartItem {
   producto: Producto;
@@ -259,11 +259,11 @@ export const POS: React.FC = () => {
                     <div className="absolute top-0 left-0 w-8 h-[2px] bg-[#f2e500] group-hover:w-full transition-all duration-300" />
 
                     {/* Product Image Preview */}
-                    <div className="relative aspect-[16/10] w-full bg-black overflow-hidden mb-3 img-vignette">
+                    <div className="relative aspect-[16/10] w-full bg-black overflow-hidden mb-3 img-vignette flex items-center justify-center p-2">
                       <img
-                        src={getProductImage(p.codigo_sku, p.categoria?.nombre_categoria)}
+                        src={getProductImage(p.codigo_sku, p.categoria?.nombre_categoria, p.imagen_url)}
                         alt={p.nombre_producto}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-500"
                       />
                       <span
                         className={`absolute top-2 right-2 px-2 py-0.5 font-['JetBrains_Mono'] text-[9px] font-bold uppercase tracking-wider backdrop-blur-md ${
@@ -396,9 +396,9 @@ export const POS: React.FC = () => {
               cart.map((item) => (
                 <div key={item.producto.id_producto} className="py-3.5 flex items-center justify-between gap-3">
                   <img
-                    src={getProductImage(item.producto.codigo_sku, item.producto.categoria?.nombre_categoria)}
+                    src={getProductImage(item.producto.codigo_sku, item.producto.categoria?.nombre_categoria, item.producto.imagen_url)}
                     alt={item.producto.nombre_producto}
-                    className="h-10 w-10 object-cover border border-[#2a2a2a] shrink-0"
+                    className="h-10 w-10 object-contain p-0.5 bg-black border border-[#2a2a2a] shrink-0"
                   />
                   <div className="flex-1 min-w-0">
                     <span className="font-['JetBrains_Mono'] text-[10px] font-bold text-[#f2e500] block">
@@ -511,10 +511,12 @@ export const POS: React.FC = () => {
             <div className="bg-black border border-[#2a2a2a] p-5 space-y-3 font-['JetBrains_Mono'] text-xs mb-5">
               {/* Receipt Header */}
               <div className="text-center pb-3 border-b border-dashed border-[#333]">
-                <span className="font-['Anybody'] text-lg font-black text-[#f2e500] italic tracking-tight block">
-                  SPARTAN BOLIVIA
-                </span>
-                <span className="text-[10px] text-[#737373] block uppercase tracking-widest">
+                <img
+                  src={storeLogo}
+                  alt="Spartan Suplementos Bolivia"
+                  className="h-14 w-auto mx-auto mb-2 object-contain"
+                />
+                <span className="text-[10px] text-[#737373] block uppercase tracking-widest font-bold">
                   Comprobante Oficial de Venta
                 </span>
               </div>

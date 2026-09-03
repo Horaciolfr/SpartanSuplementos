@@ -297,9 +297,9 @@ export const Catalogo: React.FC = () => {
                       <td className="p-5 font-bold text-white group-hover:text-[#f2e500] transition-colors">
                         <div className="flex items-center gap-3.5">
                           <img
-                            src={getProductImage(p.codigo_sku, p.categoria?.nombre_categoria)}
+                            src={getProductImage(p.codigo_sku, p.categoria?.nombre_categoria, p.imagen_url)}
                             alt={p.nombre_producto}
-                            className="h-11 w-11 object-cover border border-[#2a2a2a] shrink-0 group-hover:border-[#f2e500]/50 transition-colors"
+                            className="h-11 w-11 object-contain p-0.5 bg-black border border-[#2a2a2a] shrink-0 group-hover:border-[#f2e500]/50 transition-colors"
                           />
                           <div>
                             <span className="block">{p.nombre_producto}</span>

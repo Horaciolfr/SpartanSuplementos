@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import apiClient from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import type { Producto, Categoria } from '../types';
-import { getProductImage } from '../utils/productImages';
+import { getProductImage, storeLogo } from '../utils/productImages';
 import heroCinematic from '../assets/hero_cinematic.jpg';
 import {
   Search,
@@ -37,12 +37,18 @@ export const Inicio: React.FC = () => {
   useEffect(() => {
     const fetchCatalogData = async () => {
       try {
-        const [prodRes, catRes] = await Promise.all([
-          apiClient.get<Producto[]>('/catalogo/productos'),
-          apiClient.get<Categoria[]>('/catalogo/categorias'),
-        ]);
-        setProductos(prodRes.data.filter((p) => p.estado_activo));
-        setCategorias(catRes.data);
+        const prodRes = await apiClient.get<Producto[]>('/catalogo/productos');
+        const activeProds = prodRes.data.filter((p) => p.estado_activo);
+        setProductos(activeProds);
+
+        // Extraer categorías únicas de los productos activos
+        const catsMap = new Map<number, Categoria>();
+        activeProds.forEach((p) => {
+          if (p.categoria) {
+            catsMap.set(p.categoria.id_categoria, p.categoria);
+          }
+        });
+        setCategorias(Array.from(catsMap.values()));
       } catch (err) {
         console.error('Error al cargar catálogo en Inicio:', err);
       } finally {
@@ -68,13 +74,20 @@ export const Inicio: React.FC = () => {
         id="main-nav"
       >
         <div className="max-w-[1360px] mx-auto px-6 h-20 flex justify-between items-center">
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <span className="font-['Anybody'] text-2xl md:text-3xl text-[#f2e500] italic font-black uppercase tracking-tighter group-hover:scale-105 transition-transform duration-300">
-              SPARTAN
-            </span>
-            <span className="text-[10px] font-['JetBrains_Mono'] tracking-widest text-[#ccc7ab] uppercase ml-1 hidden sm:inline border-l border-[#2a2a2a] pl-2.5">
-              BOLIVIA
-            </span>
+          <Link to="/" className="flex items-center gap-3 group">
+            <img
+              src={storeLogo}
+              alt="Spartan Suplementos Bolivia"
+              className="h-12 w-auto object-contain group-hover:scale-105 transition-transform duration-300"
+            />
+            <div className="hidden sm:block">
+              <span className="font-['Anybody'] text-xl text-[#f2e500] italic font-black uppercase tracking-tighter block leading-none">
+                SPARTAN
+              </span>
+              <span className="text-[9px] font-['JetBrains_Mono'] tracking-widest text-[#ccc7ab] uppercase block">
+                Suplementos Bolivia
+              </span>
+            </div>
           </Link>
 
           <div className="hidden md:flex items-center gap-8 text-xs font-['JetBrains_Mono'] uppercase tracking-wider">
@@ -317,7 +330,7 @@ export const Inicio: React.FC = () => {
             {filteredProducts.map((p) => {
               const isOutOfStock = p.stock_actual <= 0;
               const isLowStock = p.stock_actual <= p.stock_seguridad;
-              const productImg = getProductImage(p.codigo_sku, p.categoria?.nombre_categoria);
+              const productImg = getProductImage(p.codigo_sku, p.categoria?.nombre_categoria, p.imagen_url);
 
               return (
                 <div
@@ -328,11 +341,11 @@ export const Inicio: React.FC = () => {
                   <div className="absolute top-0 left-0 w-8 h-[2px] bg-[#f2e500] group-hover:w-full transition-all duration-500 z-30" />
 
                   {/* Product Image Showcase */}
-                  <div className="relative aspect-square w-full bg-black overflow-hidden img-vignette cursor-pointer" onClick={() => setSelectedProductModal(p)}>
+                  <div className="relative aspect-square w-full bg-black overflow-hidden img-vignette cursor-pointer flex items-center justify-center p-3" onClick={() => setSelectedProductModal(p)}>
                     <img
                       src={productImg}
                       alt={p.nombre_producto}
-                      className="w-full h-full object-cover object-center group-hover:scale-108 transition-transform duration-700 ease-out"
+                      className="max-h-full max-w-full object-contain group-hover:scale-108 transition-transform duration-700 ease-out"
                     />
 
                     {/* Stock status overlay pill */}
@@ -426,14 +439,15 @@ export const Inicio: React.FC = () => {
             </button>
 
             {/* Modal Image */}
-            <div className="md:w-1/2 aspect-square md:aspect-auto bg-black relative overflow-hidden">
+            <div className="md:w-1/2 aspect-square md:aspect-auto bg-black relative overflow-hidden flex items-center justify-center p-6">
               <img
                 src={getProductImage(
                   selectedProductModal.codigo_sku,
-                  selectedProductModal.categoria?.nombre_categoria
+                  selectedProductModal.categoria?.nombre_categoria,
+                  selectedProductModal.imagen_url
                 )}
                 alt={selectedProductModal.nombre_producto}
-                className="w-full h-full object-cover"
+                className="max-h-[380px] w-auto object-contain drop-shadow-2xl"
               />
             </div>
 
@@ -450,7 +464,19 @@ export const Inicio: React.FC = () => {
                   Categoría: {selectedProductModal.categoria?.nombre_categoria || 'Suplementos'}
                 </p>
 
-                <div className="space-y-2 text-xs font-['Hanken_Grotesk'] text-[#ccc7ab] mb-6 border-y border-[#1A1A1A] py-4">
+                {/* Technical / Nutritional Description */}
+                {selectedProductModal.descripcion && (
+                  <div className="mb-4 bg-black/60 border border-[#2a2a2a] p-3">
+                    <span className="text-[10px] font-['JetBrains_Mono'] text-[#f2e500] uppercase block mb-1 font-bold">
+                      Ficha Técnica & Beneficios:
+                    </span>
+                    <p className="text-xs text-[#e2e2e2] leading-relaxed">
+                      {selectedProductModal.descripcion}
+                    </p>
+                  </div>
+                )}
+
+                <div className="space-y-2 text-xs font-['Hanken_Grotesk'] text-[#ccc7ab] mb-6 border-y border-[#1A1A1A] py-3">
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="h-4 w-4 text-[#f2e500]" />
                     <span>Control de stock serializado bajo PostgreSQL ACID.</span>

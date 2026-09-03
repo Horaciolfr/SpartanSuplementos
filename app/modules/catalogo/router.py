@@ -40,12 +40,11 @@ async def create_categoria(
     await db.refresh(nueva_cat)
     return nueva_cat
 
-# --- PRODUCTOS (ADMINISTRADOR) ---
+# --- PRODUCTOS ---
 
 @router.get("/productos", response_model=list[ProductoOut])
 async def list_productos(
     db: AsyncSession = Depends(get_db),
-    current_user: Usuario = Depends(require_roles("ADMINISTRADOR"))
 ):
     stmt = select(Producto).options(selectinload(Producto.categoria)).order_by(Producto.id_producto)
     res = await db.execute(stmt)
