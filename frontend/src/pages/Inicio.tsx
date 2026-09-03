@@ -236,6 +236,57 @@ export const Inicio: React.FC = () => {
         </div>
       </section>
 
+      {/* Contemporary Bento Grid: Pilares de Alto Rendimiento */}
+      <section className="max-w-[1360px] mx-auto px-6 -mt-10 mb-16 relative z-30">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="md:col-span-2 bg-[#0c0c0c]/90 border border-[#222] p-6 hover:border-[#f2e500]/50 transition-colors backdrop-blur-md relative overflow-hidden group">
+            <div className="absolute top-0 left-0 w-1 h-full bg-[#f2e500]" />
+            <div className="flex items-center gap-3 mb-2">
+              <ShieldCheck className="h-5 w-5 text-[#f2e500]" />
+              <span className="font-['JetBrains_Mono'] text-xs font-bold text-[#f2e500] uppercase tracking-wider">
+                Control Transaccional ACID
+              </span>
+            </div>
+            <h3 className="font-['Anybody'] text-xl text-white uppercase font-black mb-1">
+              Bloqueo Pesimista en Tiempo Real
+            </h3>
+            <p className="font-['Hanken_Grotesk'] text-xs text-[#ccc7ab] leading-relaxed">
+              Cada venta ejecutada en caja valida saldo atómico con SELECT FOR UPDATE en PostgreSQL, imposibilitando quiebres o sobreventa de stock.
+            </p>
+          </div>
+
+          <div className="bg-[#0c0c0c]/90 border border-[#222] p-6 hover:border-[#f2e500]/50 transition-colors backdrop-blur-md relative overflow-hidden group">
+            <div className="flex items-center gap-3 mb-2">
+              <Award className="h-5 w-5 text-[#f2e500]" />
+              <span className="font-['JetBrains_Mono'] text-xs font-bold text-white uppercase tracking-wider">
+                198 Referencias
+              </span>
+            </div>
+            <h3 className="font-['Anybody'] text-xl text-white uppercase font-black mb-1">
+              Catálogo Auténtico
+            </h3>
+            <p className="font-['Hanken_Grotesk'] text-xs text-[#ccc7ab] leading-relaxed">
+              Marcas internacionales líderes (ADN, Dragon Pharma, Evogen, MuscleTech, Nutrex) con lotes importados y vigentes.
+            </p>
+          </div>
+
+          <div className="bg-[#0c0c0c]/90 border border-[#222] p-6 hover:border-[#f2e500]/50 transition-colors backdrop-blur-md relative overflow-hidden group">
+            <div className="flex items-center gap-3 mb-2">
+              <Zap className="h-5 w-5 text-[#f2e500]" />
+              <span className="font-['JetBrains_Mono'] text-xs font-bold text-[#f2e500] uppercase tracking-wider">
+                Punto de Venta
+              </span>
+            </div>
+            <h3 className="font-['Anybody'] text-xl text-white uppercase font-black mb-1">
+              Despacho Inmediato
+            </h3>
+            <p className="font-['Hanken_Grotesk'] text-xs text-[#ccc7ab] leading-relaxed">
+              Impresión instantánea de comprobante térmico con certificación digital y trazabilidad directa a Kárdex.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* Catalog Showcase Section */}
       <section className="py-24 max-w-[1360px] mx-auto px-6 relative" id="catalogo">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
