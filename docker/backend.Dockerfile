@@ -19,11 +19,10 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
 # Copiar código fuente
-COPY app/ ./app/
-COPY backend/ ./backend/
-COPY alembic/ ./alembic/
-COPY alembic.ini .
-COPY scripts/ ./scripts/
+COPY app ./app
+COPY backend ./backend
+COPY alembic.ini ./
+COPY scripts ./scripts
 COPY docker/backend_entrypoint.sh /entrypoint.sh
 
 RUN chmod +x /entrypoint.sh

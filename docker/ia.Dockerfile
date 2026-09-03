@@ -15,7 +15,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
 # Copiar servicio de IA
-COPY services/ ./services/
+COPY services ./services
 
 EXPOSE 8001
 
