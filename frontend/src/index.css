@@ -20,15 +20,116 @@
 
 @layer base {
   body {
-    background-color: #0d0d0d;
+    background-color: #080808;
     color: #e2e2e2;
     font-family: 'Hanken Grotesk', sans-serif;
     min-height: 100vh;
+    overflow-x: hidden;
   }
 }
 
-.material-symbols-outlined {
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+/* Animations & Micro-interactions */
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.35;
+    transform: scale(1);
+    filter: drop-shadow(0 0 15px rgba(242, 229, 0, 0.3));
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.03);
+    filter: drop-shadow(0 0 25px rgba(242, 229, 0, 0.6));
+  }
+}
+
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes shimmerEffect {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 4s ease-in-out infinite;
+}
+
+.animate-float-slow {
+  animation: floatSlow 6s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(242,229,0,0.15) 50%, rgba(255,255,255,0) 100%);
+  background-size: 200% 100%;
+  animation: shimmerEffect 2.5s infinite;
+}
+
+/* Luxury Glassmorphism & Cards */
+.spartan-glass {
+  background: rgba(13, 13, 13, 0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.spartan-glass:hover {
+  border-color: rgba(242, 229, 0, 0.45);
+  box-shadow: 0 12px 40px -10px rgba(0, 0, 0, 0.8), 0 0 20px -2px rgba(242, 229, 0, 0.15);
+  transform: translateY(-3px);
+}
+
+.spartan-btn-primary {
+  background-color: #f2e500;
+  color: #000000;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 900;
+  text-transform: uppercase;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.spartan-btn-primary:hover {
+  background-color: #ffffff;
+  box-shadow: 0 0 25px rgba(242, 229, 0, 0.5);
+  transform: translateY(-2px);
+}
+
+.spartan-btn-primary:active {
+  transform: translateY(0px);
+}
+
+/* Ambient Radial Backgrounds */
+.bg-spartan-radial {
+  background: radial-gradient(circle at 50% 0%, rgba(242, 229, 0, 0.08) 0%, rgba(13, 13, 13, 0) 65%);
+}
+
+.bg-spartan-card-gradient {
+  background: linear-gradient(180deg, rgba(20, 20, 20, 0.9) 0%, rgba(10, 10, 10, 0.95) 100%);
+}
+
+/* Image Vignette Overlay */
+.img-vignette {
+  position: relative;
+}
+
+.img-vignette::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 40%, rgba(8, 8, 8, 0.95) 100%);
+  pointer-events: none;
 }
 
 /* Custom scrollbar styling */
@@ -37,10 +138,10 @@
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0d0d0d;
+  background: #080808;
 }
 ::-webkit-scrollbar-thumb {
-  background: #222222;
+  background: #1f1f1f;
   border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {

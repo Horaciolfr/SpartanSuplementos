@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   Tag,
 } from 'lucide-react';
+import { getProductImage } from '../utils/productImages';
 
 interface CartItem {
   producto: Producto;
@@ -257,33 +258,41 @@ export const POS: React.FC = () => {
                     {/* Top corner accent line */}
                     <div className="absolute top-0 left-0 w-8 h-[2px] bg-[#f2e500] group-hover:w-full transition-all duration-300" />
 
+                    {/* Product Image Preview */}
+                    <div className="relative aspect-[16/10] w-full bg-black overflow-hidden mb-3 img-vignette">
+                      <img
+                        src={getProductImage(p.codigo_sku, p.categoria?.nombre_categoria)}
+                        alt={p.nombre_producto}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <span
+                        className={`absolute top-2 right-2 px-2 py-0.5 font-['JetBrains_Mono'] text-[9px] font-bold uppercase tracking-wider backdrop-blur-md ${
+                          isOut
+                            ? 'bg-red-950/80 text-red-400 border border-red-500/40'
+                            : isLow
+                            ? 'bg-amber-950/80 text-[#f2e500] border border-[#f2e500]/40'
+                            : 'bg-black/80 text-emerald-400 border border-emerald-500/40'
+                        }`}
+                      >
+                        {isOut ? 'SIN STOCK' : `${p.stock_actual} UDS`}
+                      </span>
+                    </div>
+
                     <div>
                       {/* SKU & Stock Tag */}
-                      <div className="flex items-center justify-between gap-2 mb-3">
+                      <div className="flex items-center justify-between gap-2 mb-1.5">
                         <span className="font-['JetBrains_Mono'] text-[11px] font-bold text-[#f2e500] uppercase tracking-wider">
                           [{p.codigo_sku}]
                         </span>
-
-                        <span
-                          className={`px-2 py-0.5 font-['JetBrains_Mono'] text-[10px] font-bold uppercase tracking-wider ${
-                            isOut
-                              ? 'bg-red-950/40 text-red-400 border border-red-500/40'
-                              : isLow
-                              ? 'bg-amber-950/40 text-[#f2e500] border border-[#f2e500]/40'
-                              : 'bg-emerald-950/40 text-emerald-400 border border-emerald-500/40'
-                          }`}
-                        >
-                          {isOut ? 'SIN STOCK' : `${p.stock_actual} UDS`}
+                        <span className="font-['JetBrains_Mono'] text-[10px] text-[#ccc7ab] uppercase tracking-wider">
+                          {p.categoria?.nombre_categoria || 'GENERAL'}
                         </span>
                       </div>
 
-                      {/* Product Name & Category */}
+                      {/* Product Name */}
                       <h3 className="font-['Anybody'] text-base font-bold text-white uppercase tracking-tight group-hover:text-[#f2e500] transition-colors line-clamp-2 mb-1">
                         {p.nombre_producto}
                       </h3>
-                      <p className="font-['JetBrains_Mono'] text-[10px] text-[#ccc7ab] uppercase tracking-wider mb-4">
-                        {p.categoria?.nombre_categoria || 'GENERAL'}
-                      </p>
                     </div>
 
                     {/* Price and Add to Cart Action */}
@@ -386,6 +395,11 @@ export const POS: React.FC = () => {
             ) : (
               cart.map((item) => (
                 <div key={item.producto.id_producto} className="py-3.5 flex items-center justify-between gap-3">
+                  <img
+                    src={getProductImage(item.producto.codigo_sku, item.producto.categoria?.nombre_categoria)}
+                    alt={item.producto.nombre_producto}
+                    className="h-10 w-10 object-cover border border-[#2a2a2a] shrink-0"
+                  />
                   <div className="flex-1 min-w-0">
                     <span className="font-['JetBrains_Mono'] text-[10px] font-bold text-[#f2e500] block">
                       [{item.producto.codigo_sku}]

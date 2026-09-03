@@ -3,6 +3,7 @@ import apiClient from '../api/client';
 import type { Producto, Categoria } from '../types';
 import { getErrorMessage } from '../utils/errors';
 import { Package, Plus, Search, Layers, RefreshCw, AlertCircle, CheckCircle2, Trash2, X } from 'lucide-react';
+import { getProductImage } from '../utils/productImages';
 
 export const Catalogo: React.FC = () => {
   const [productos, setProductos] = useState<Producto[]>([]);
@@ -294,7 +295,19 @@ export const Catalogo: React.FC = () => {
 
                       {/* Producto */}
                       <td className="p-5 font-bold text-white group-hover:text-[#f2e500] transition-colors">
-                        {p.nombre_producto}
+                        <div className="flex items-center gap-3.5">
+                          <img
+                            src={getProductImage(p.codigo_sku, p.categoria?.nombre_categoria)}
+                            alt={p.nombre_producto}
+                            className="h-11 w-11 object-cover border border-[#2a2a2a] shrink-0 group-hover:border-[#f2e500]/50 transition-colors"
+                          />
+                          <div>
+                            <span className="block">{p.nombre_producto}</span>
+                            <span className="text-[10px] font-['JetBrains_Mono'] text-[#737373] uppercase block font-normal">
+                              Lote Certificado PG
+                            </span>
+                          </div>
+                        </div>
                       </td>
 
                       {/* Categoría */}
