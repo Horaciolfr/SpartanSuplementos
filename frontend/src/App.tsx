@@ -16,16 +16,12 @@ export const App: React.FC = () => {
           {/* Public Presentation & Catalog Routes */}
           <Route path="/" element={<Inicio />} />
           <Route path="/inicio" element={<Inicio />} />
+          <Route path="/catalogo" element={<Catalogo />} />
           <Route path="/login" element={<Login />} />
 
           {/* Protected Routes inside Main Layout */}
           <Route element={<ProtectedRoute />}>
             <Route element={<Layout />}>
-              {/* Rutas exclusivas de Administrador */}
-              <Route element={<ProtectedRoute allowedRoles={['ADMINISTRADOR']} />}>
-                <Route path="/catalogo" element={<Catalogo />} />
-              </Route>
-
               {/* Rutas para Cajero y Administrador */}
               <Route element={<ProtectedRoute allowedRoles={['CAJERO', 'ADMINISTRADOR']} />}>
                 <Route path="/pos" element={<POS />} />

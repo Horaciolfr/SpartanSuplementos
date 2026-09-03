@@ -1,11 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import apiClient from '../api/client';
 import type { Producto, Categoria } from '../types';
 import { getErrorMessage } from '../utils/errors';
-import { Package, Plus, Search, Layers, RefreshCw, AlertCircle, CheckCircle2, Trash2, X } from 'lucide-react';
+import {
+  Plus,
+  Search,
+  Layers,
+  AlertCircle,
+  CheckCircle2,
+  Trash2,
+  X,
+  Sparkles,
+  ShieldCheck,
+  Award,
+  Check,
+  ShoppingCart,
+  LayoutGrid,
+  Table,
+} from 'lucide-react';
+import { ProductCard } from '../components/ProductCard';
+import { Navbar } from '../components/Navbar';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { getProductImage } from '../utils/productImages';
 
 export const Catalogo: React.FC = () => {
+  const { role } = useAuth();
+  const navigate = useNavigate();
+
   const [productos, setProductos] = useState<Producto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [loading, setLoading] = useState(true);
@@ -14,11 +36,17 @@ export const Catalogo: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Modals state
+  // View Mode: 'SECTIONS' (Public categorized showcase) vs 'TABLE' (Admin Inventory Manager)
+  const [viewMode, setViewMode] = useState<'SECTIONS' | 'TABLE'>('SECTIONS');
+
+  // Product Detail Modal
+  const [selectedProductModal, setSelectedProductModal] = useState<Producto | null>(null);
+
+  // Admin Modals state
   const [showProductModal, setShowProductModal] = useState(false);
   const [showCatModal, setShowCatModal] = useState(false);
 
-  // Form states
+  // Admin Form states
   const [sku, setSku] = useState('');
   const [nombre, setNombre] = useState('');
   const [categoriaId, setCategoriaId] = useState<number>(0);
@@ -31,14 +59,35 @@ export const Catalogo: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const [prodRes, catRes] = await Promise.all([
-        apiClient.get<Producto[]>('/catalogo/productos'),
-        apiClient.get<Categoria[]>('/catalogo/categorias'),
-      ]);
-      setProductos(prodRes.data.filter((p) => p.estado_activo));
-      setCategorias(catRes.data);
-      if (catRes.data.length > 0) {
-        setCategoriaId((prev) => (prev === 0 ? catRes.data[0].id_categoria : prev));
+      // 1. Obtener productos activos de la API pública
+      const prodRes = await apiClient.get<Producto[]>('/catalogo/productos');
+      const active = prodRes.data.filter((p) => p.estado_activo);
+      setProductos(active);
+
+      // 2. Extraer categorías activas sin depender del endpoint protegido
+      const catMap = new Map<number, Categoria>();
+      active.forEach((p) => {
+        if (p.categoria) {
+          catMap.set(p.categoria.id_categoria, p.categoria);
+        }
+      });
+      const derived = Array.from(catMap.values());
+      setCategorias(derived);
+
+      if (derived.length > 0) {
+        setCategoriaId(derived[0].id_categoria);
+      }
+
+      // Si es administrador, intentar cargar catálogo administrativo para el formulario
+      if (role === 'ADMINISTRADOR') {
+        try {
+          const catRes = await apiClient.get<Categoria[]>('/catalogo/categorias');
+          if (catRes.data?.length > 0) {
+            setCategorias(catRes.data);
+          }
+        } catch {
+          // Mantener categorías derivadas
+        }
       }
     } catch (err: any) {
       setError(getErrorMessage(err, 'Error al cargar datos del catálogo'));
@@ -49,15 +98,9 @@ export const Catalogo: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [role]);
 
-  const openNewProductModal = () => {
-    if (categorias.length > 0 && categoriaId === 0) {
-      setCategoriaId(categorias[0].id_categoria);
-    }
-    setShowProductModal(true);
-  };
-
+  // Manejador de creación de producto (Admin)
   const handleCreateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -86,7 +129,6 @@ export const Catalogo: React.FC = () => {
       });
       setSuccess(`Producto ${sku} registrado exitosamente`);
       setShowProductModal(false);
-      // Reset form
       setSku('');
       setNombre('');
       setPrecio('');
@@ -96,6 +138,7 @@ export const Catalogo: React.FC = () => {
     }
   };
 
+  // Manejador de creación de categoría (Admin)
   const handleCreateCategoria = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -118,6 +161,7 @@ export const Catalogo: React.FC = () => {
     }
   };
 
+  // Desactivación de producto (Admin)
   const handleDeleteProduct = async (id: number) => {
     if (!window.confirm('¿Confirmas la desactivación de este producto?')) return;
     try {
@@ -129,386 +173,552 @@ export const Catalogo: React.FC = () => {
     }
   };
 
-  const filteredProducts = productos.filter((p) => {
-    const matchesSearch =
-      p.nombre_producto.toLowerCase().includes(search.toLowerCase()) ||
-      p.codigo_sku.toLowerCase().includes(search.toLowerCase());
-    const matchesCat = selectedCat === 'ALL' || p.id_categoria === selectedCat;
-    return matchesSearch && matchesCat;
-  });
+  // Filtrado de productos por búsqueda
+  const filteredProducts = useMemo(() => {
+    return productos.filter((p) => {
+      const matchSearch =
+        p.nombre_producto.toLowerCase().includes(search.toLowerCase()) ||
+        p.codigo_sku.toLowerCase().includes(search.toLowerCase()) ||
+        (p.categoria?.nombre_categoria || '').toLowerCase().includes(search.toLowerCase());
+      const matchCategory = selectedCat === 'ALL' || p.id_categoria === selectedCat;
+      return matchSearch && matchCategory;
+    });
+  }, [productos, search, selectedCat]);
+
+  // Agrupación por Secciones de Categoría
+  const categorizedSections = useMemo(() => {
+    const groups: { [catName: string]: { cat: Categoria | null; items: Producto[] } } = {};
+
+    filteredProducts.forEach((p) => {
+      const catName = p.categoria?.nombre_categoria || 'OTRAS CATEGORÍAS';
+      if (!groups[catName]) {
+        groups[catName] = { cat: p.categoria || null, items: [] };
+      }
+      groups[catName].items.push(p);
+    });
+
+    // Ordenar para que aparezcan en orden lógico: Creatinas, Proteínas, Pre-entrenos, Gainers, Aminoácidos, Quemadores, Salud
+    const preferredOrder = [
+      'CREATINAS & FUERZA',
+      'SUPLEMENTOS PROTEICOS',
+      'PRE-ENTRENOS & ENERGIA',
+      'GANADORES DE MASA (MASS GAINERS)',
+      'AMINOACIDOS & RECUPERACION',
+      'QUEMADORES & DEFINICION',
+      'SALUD, VITAMINAS & ARTICULACIONES',
+    ];
+
+    const sortedKeys = Object.keys(groups).sort((a, b) => {
+      const idxA = preferredOrder.indexOf(a);
+      const idxB = preferredOrder.indexOf(b);
+      if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+      if (idxA !== -1) return -1;
+      if (idxB !== -1) return 1;
+      return a.localeCompare(b);
+    });
+
+    return sortedKeys.map((k) => ({
+      categoryName: k,
+      category: groups[k].cat,
+      items: groups[k].items,
+    }));
+  }, [filteredProducts]);
+
+  // Subtítulos descriptivos por categoría
+  const getCategoryDescription = (name: string) => {
+    switch (name) {
+      case 'CREATINAS & FUERZA':
+        return 'Potencia anaeróbica explosiva, resíntesis acelerada de fosfocreatina ATP e hipertrofia celular.';
+      case 'SUPLEMENTOS PROTEICOS':
+        return 'Aislados (Isolates) y concentrados microfiltrados de máxima absorción y balance de nitrógeno.';
+      case 'PRE-ENTRENOS & ENERGIA':
+        return 'Complejos con cafeína anhidra, beta-alanina y vasodilatadores de óxido nítrico para entrenamientos extremos.';
+      case 'GANADORES DE MASA (MASS GAINERS)':
+        return 'Fórmulas hipercalóricas con carbohidratos complejos, BCAAs y perfil lipídico para superávit calórico.';
+      case 'AMINOACIDOS & RECUPERACION':
+        return 'Leucina, isoleucina, valina (2:1:1) y glutamina micronizada para frenar el catabolismo muscular.';
+      case 'QUEMADORES & DEFINICION':
+        return 'Termogénicos y lipotrópicos con L-Carnitina para acelerar el metabolismo y preservación magra.';
+      case 'SALUD, VITAMINAS & ARTICULACIONES':
+        return 'Omega 3 premium, colágeno hidrolizado, magnesio y adaptógenos para longevidad articular y hormonal.';
+      default:
+        return 'Formulaciones certificadas de nutrición deportiva de grado élite con control físico en Kárdex.';
+    }
+  };
 
   return (
-    <div className="space-y-8 font-['Hanken_Grotesk'] text-[#e2e2e2]">
-      {/* Header Section */}
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-[#1A1A1A] pb-8">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <Package className="h-6 w-6 text-[#f2e500]" />
-            <span className="font-['JetBrains_Mono'] text-xs uppercase tracking-widest text-[#f2e500]">
-              Control Maestro de Inventario
-            </span>
-          </div>
-          <h1 className="font-['Anybody'] text-3xl md:text-4xl text-white uppercase font-bold tracking-tight">
-            Inventario & Catálogo
-          </h1>
-          <p className="font-['Hanken_Grotesk'] text-sm text-[#ccc7ab] mt-1">
-            Gestión centralizada de SKUs, precios y stock de seguridad de Spartan Suplementos.
-          </p>
-        </div>
+    <div className="min-h-screen bg-[#080808] text-[#e2e2e2] flex flex-col font-['Hanken_Grotesk']">
+      <Navbar />
 
-        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-          <button
-            onClick={() => setShowCatModal(true)}
-            className="flex items-center justify-center gap-2 bg-[#141414] border border-[#2a2a2a] px-4 py-3 text-xs font-['JetBrains_Mono'] uppercase font-bold text-[#ccc7ab] hover:border-[#f2e500] hover:text-white transition-colors cursor-pointer"
-          >
-            <Layers className="h-4 w-4 text-[#f2e500]" />
-            <span>Nueva Categoría</span>
-          </button>
-
-          <button
-            onClick={openNewProductModal}
-            className="flex items-center justify-center gap-2 bg-[#f2e500] text-black px-6 py-3 text-xs font-['JetBrains_Mono'] uppercase font-black hover:bg-white transition-colors cursor-pointer shadow-md"
-          >
-            <Plus className="h-4 w-4 stroke-[3]" />
-            <span>Nuevo Producto</span>
-          </button>
-
-          <button
-            onClick={fetchData}
-            title="Refrescar catálogo"
-            className="flex h-11 w-11 items-center justify-center border border-[#1A1A1A] bg-black text-[#ccc7ab] hover:text-[#f2e500] transition-colors cursor-pointer"
-          >
-            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin text-[#f2e500]' : ''}`} />
-          </button>
-        </div>
-      </header>
-
-      {/* Notifications */}
-      {error && (
-        <div className="flex items-center justify-between border border-red-500/40 bg-red-950/20 p-4 text-xs text-red-300">
-          <div className="flex items-center gap-3">
-            <AlertCircle className="h-5 w-5 shrink-0 text-red-400" />
-            <span>{error}</span>
-          </div>
-          <button onClick={() => setError(null)} className="font-['JetBrains_Mono'] text-[11px] font-bold uppercase underline hover:text-white">
-            Cerrar
-          </button>
-        </div>
-      )}
-
-      {success && (
-        <div className="flex items-center justify-between border border-emerald-500/40 bg-emerald-950/20 p-4 text-xs text-emerald-300">
-          <div className="flex items-center gap-3">
-            <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-400" />
-            <span>{success}</span>
-          </div>
-          <button onClick={() => setSuccess(null)} className="font-['JetBrains_Mono'] text-[11px] font-bold uppercase underline hover:text-white">
-            Cerrar
-          </button>
-        </div>
-      )}
-
-      {/* Search & Filters Controls */}
-      <section className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between bg-[#131313] p-5 border border-[#1A1A1A]">
-        <div className="relative w-full md:w-96">
-          <Search className="absolute left-3.5 top-3.5 h-4 w-4 text-[#ccc7ab]" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar por SKU o nombre..."
-            className="w-full bg-black border border-[#2a2a2a] focus:border-[#f2e500] text-white pl-10 pr-4 py-2.5 text-xs outline-none font-['Hanken_Grotesk'] placeholder-gray-600 transition-colors"
-          />
-        </div>
-
-        {/* Category Filter Pills */}
-        <div className="flex flex-wrap gap-2 w-full md:w-auto">
-          <button
-            onClick={() => setSelectedCat('ALL')}
-            className={`px-4 py-2 text-xs font-['JetBrains_Mono'] uppercase font-bold transition-colors ${
-              selectedCat === 'ALL'
-                ? 'bg-[#f2e500] text-black'
-                : 'bg-black border border-[#2a2a2a] text-[#ccc7ab] hover:border-[#f2e500] hover:text-white'
-            }`}
-          >
-            Todos ({productos.length})
-          </button>
-          {categorias.map((c) => (
-            <button
-              key={c.id_categoria}
-              onClick={() => setSelectedCat(c.id_categoria)}
-              className={`px-4 py-2 text-xs font-['JetBrains_Mono'] uppercase font-bold transition-colors ${
-                selectedCat === c.id_categoria
-                  ? 'bg-[#f2e500] text-black'
-                  : 'bg-black border border-[#2a2a2a] text-[#ccc7ab] hover:border-[#f2e500] hover:text-white'
-              }`}
-            >
-              {c.nombre_categoria}
+      <main className="flex-1 max-w-[1360px] mx-auto px-6 py-10 w-full">
+        {/* Alerts */}
+        {error && (
+          <div className="mb-6 bg-red-950/40 border border-red-500/50 p-4 text-xs font-['JetBrains_Mono'] text-red-200 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 text-red-400" />
+              <span>{error}</span>
+            </div>
+            <button onClick={() => setError(null)} className="text-red-400 hover:text-white cursor-pointer">
+              <X className="h-4 w-4" />
             </button>
-          ))}
-        </div>
-      </section>
+          </div>
+        )}
 
-      {/* Data Table (Bento Style) */}
-      <div className="border border-[#1A1A1A] bg-[#0D0D0D] overflow-hidden w-full shadow-2xl">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr className="border-b border-[#1A1A1A] bg-[#080808]">
-                <th className="p-5 font-['JetBrains_Mono'] text-xs text-[#ccc7ab] uppercase tracking-wider">Código SKU</th>
-                <th className="p-5 font-['JetBrains_Mono'] text-xs text-[#ccc7ab] uppercase tracking-wider">Producto</th>
-                <th className="p-5 font-['JetBrains_Mono'] text-xs text-[#ccc7ab] uppercase tracking-wider">Categoría</th>
-                <th className="p-5 font-['JetBrains_Mono'] text-xs text-[#ccc7ab] uppercase tracking-wider text-right">Precio</th>
-                <th className="p-5 font-['JetBrains_Mono'] text-xs text-[#ccc7ab] uppercase tracking-wider">Stock (Nivel)</th>
-                <th className="p-5 font-['JetBrains_Mono'] text-xs text-[#ccc7ab] uppercase tracking-wider text-center">Estado</th>
-                <th className="p-5 font-['JetBrains_Mono'] text-xs text-[#ccc7ab] uppercase tracking-wider text-right">Acción</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#1A1A1A]">
-              {loading ? (
-                <tr>
-                  <td colSpan={7} className="py-16 text-center text-[#ccc7ab]">
-                    <div className="flex flex-col items-center justify-center gap-3">
-                      <div className="h-6 w-6 animate-spin border-2 border-[#f2e500] border-t-transparent rounded-full" />
-                      <span className="font-['JetBrains_Mono'] text-xs uppercase">Cargando datos del inventario...</span>
-                    </div>
-                  </td>
-                </tr>
-              ) : filteredProducts.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="py-16 text-center text-gray-500 font-['Hanken_Grotesk'] text-sm">
-                    No se encontraron productos registrados con el criterio de búsqueda.
-                  </td>
-                </tr>
-              ) : (
-                filteredProducts.map((p) => {
-                  const isOutOfStock = p.stock_actual <= 0;
-                  const isLowStock = p.stock_actual <= p.stock_seguridad;
-                  const stockPercent = Math.min(100, Math.max(10, (p.stock_actual / (p.stock_seguridad * 3 || 30)) * 100));
+        {success && (
+          <div className="mb-6 bg-emerald-950/40 border border-emerald-500/50 p-4 text-xs font-['JetBrains_Mono'] text-emerald-200 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+              <span>{success}</span>
+            </div>
+            <button onClick={() => setSuccess(null)} className="text-emerald-400 hover:text-white cursor-pointer">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
 
-                  return (
-                    <tr key={p.id_producto} className="hover:bg-[#111111] transition-colors group">
-                      {/* SKU */}
-                      <td className="p-5 font-['JetBrains_Mono'] font-bold text-[#f2e500]">
-                        {p.codigo_sku}
-                      </td>
+        {/* Page Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10 pb-8 border-b border-[#1A1A1A]">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="h-4 w-4 text-[#f2e500]" />
+              <span className="font-['JetBrains_Mono'] text-xs uppercase tracking-widest text-[#f2e500]">
+                Catálogo Maestro Autorizado — Bolivia 2026
+              </span>
+            </div>
+            <h1 className="font-['Anybody'] text-4xl sm:text-5xl font-black text-white uppercase tracking-tight">
+              Catálogo por <span className="text-[#f2e500]">Secciones</span>
+            </h1>
+            <p className="text-sm text-[#ccc7ab] mt-2 max-w-2xl leading-relaxed">
+              Explora las {productos.length} referencias de suplementos nutricionales de grado élite, agrupadas rigurosamente por su objetivo metabólico y composición química.
+            </p>
+          </div>
 
-                      {/* Producto */}
-                      <td className="p-5 font-bold text-white group-hover:text-[#f2e500] transition-colors">
-                        <div className="flex items-center gap-3.5">
-                          <img
-                            src={getProductImage(p.codigo_sku, p.categoria?.nombre_categoria, p.imagen_url)}
-                            alt={p.nombre_producto}
-                            className="h-11 w-11 object-contain p-0.5 bg-black border border-[#2a2a2a] shrink-0 group-hover:border-[#f2e500]/50 transition-colors"
-                          />
-                          <div>
-                            <span className="block">{p.nombre_producto}</span>
-                            <span className="text-[10px] font-['JetBrains_Mono'] text-[#737373] uppercase block font-normal">
-                              Lote Certificado PG
-                            </span>
-                          </div>
-                        </div>
-                      </td>
+          {/* View Mode Switcher (para Administrador) o Contador para público */}
+          <div className="flex flex-wrap items-center gap-3">
+            {role === 'ADMINISTRADOR' && (
+              <div className="flex items-center bg-[#141414] border border-[#2a2a2a] p-1">
+                <button
+                  onClick={() => setViewMode('SECTIONS')}
+                  className={`flex items-center gap-2 px-3 py-2 text-xs font-['JetBrains_Mono'] uppercase font-bold transition-all cursor-pointer ${
+                    viewMode === 'SECTIONS' ? 'bg-[#f2e500] text-black' : 'text-[#ccc7ab] hover:text-white'
+                  }`}
+                >
+                  <LayoutGrid className="h-3.5 w-3.5" />
+                  <span>Por Secciones</span>
+                </button>
+                <button
+                  onClick={() => setViewMode('TABLE')}
+                  className={`flex items-center gap-2 px-3 py-2 text-xs font-['JetBrains_Mono'] uppercase font-bold transition-all cursor-pointer ${
+                    viewMode === 'TABLE' ? 'bg-[#f2e500] text-black' : 'text-[#ccc7ab] hover:text-white'
+                  }`}
+                >
+                  <Table className="h-3.5 w-3.5" />
+                  <span>Tabla de Inventario</span>
+                </button>
+              </div>
+            )}
 
-                      {/* Categoría */}
-                      <td className="p-5">
-                        <span className="px-2.5 py-1 bg-black border border-[#2a2a2a] text-[#ccc7ab] font-['JetBrains_Mono'] text-[10px] uppercase">
-                          {p.categoria?.nombre_categoria || 'N/A'}
-                        </span>
-                      </td>
-
-                      {/* Precio */}
-                      <td className="p-5 text-right font-['Anybody'] text-sm font-bold text-white">
-                        Bs. {Number(p.precio_unitario).toFixed(2)}
-                      </td>
-
-                      {/* Stock Level Bar */}
-                      <td className="p-5 w-64">
-                        <div className="flex items-center justify-between mb-1.5 font-['JetBrains_Mono'] text-[11px]">
-                          <span className={isOutOfStock ? 'text-red-400 font-bold' : isLowStock ? 'text-amber-300 font-bold' : 'text-white font-bold'}>
-                            {p.stock_actual} uds
-                          </span>
-                          <span className={isOutOfStock ? 'text-red-400' : isLowStock ? 'text-amber-300' : 'text-emerald-400'}>
-                            {isOutOfStock ? 'Agotado' : isLowStock ? 'Crítico' : 'Óptimo'}
-                          </span>
-                        </div>
-                        <div className="w-full h-1.5 bg-[#1A1A1A]">
-                          <div
-                            className={`h-full transition-all duration-500 ${
-                              isOutOfStock
-                                ? 'bg-red-500 w-full'
-                                : isLowStock
-                                ? 'bg-amber-400'
-                                : 'bg-[#f2e500]'
-                            }`}
-                            style={{ width: `${isOutOfStock ? 100 : stockPercent}%` }}
-                          />
-                        </div>
-                        <span className="text-[10px] font-['JetBrains_Mono'] text-gray-500 block mt-1">
-                          Seguridad: {p.stock_seguridad} uds
-                        </span>
-                      </td>
-
-                      {/* Estado */}
-                      <td className="p-5 text-center">
-                        <span
-                          className={`inline-block px-2 py-0.5 text-[10px] font-['JetBrains_Mono'] uppercase font-bold ${
-                            p.estado_activo
-                              ? 'border border-emerald-500/40 text-emerald-400 bg-emerald-950/20'
-                              : 'border border-gray-700 text-gray-400 bg-black'
-                          }`}
-                        >
-                          {p.estado_activo ? 'Activo' : 'Inactivo'}
-                        </span>
-                      </td>
-
-                      {/* Acciones */}
-                      <td className="p-5 text-right">
-                        <button
-                          onClick={() => handleDeleteProduct(p.id_producto)}
-                          title="Desactivar producto"
-                          className="border border-[#1A1A1A] bg-black p-2 text-[#ccc7ab] hover:border-red-500/50 hover:text-red-400 transition-colors cursor-pointer"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+            {role === 'ADMINISTRADOR' && viewMode === 'TABLE' && (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowCatModal(true)}
+                  className="spartan-btn-secondary px-4 py-2.5 text-xs flex items-center gap-1.5 cursor-pointer interactive-press"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  <span>Nueva Categoría</span>
+                </button>
+                <button
+                  onClick={() => setShowProductModal(true)}
+                  className="spartan-btn-primary px-4 py-2.5 text-xs flex items-center gap-1.5 cursor-pointer interactive-press shadow-md"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  <span>Nuevo Producto</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Footer info bar */}
-        <div className="p-4 flex items-center justify-between bg-[#080808] border-t border-[#1A1A1A] font-['JetBrains_Mono'] text-[11px] text-[#ccc7ab]">
-          <span>MOSTRANDO {filteredProducts.length} DE {productos.length} PRODUCTOS REGISTRADOS</span>
-          <span className="text-gray-500 uppercase">Spartan Logistics Engine</span>
-        </div>
-      </div>
-
-      {/* Modal: Crear Producto */}
-      {showProductModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-lg border border-[#1A1A1A] bg-[#0D0D0D] p-8 shadow-2xl relative text-xs">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-[#f2e500]" />
-
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="font-['Anybody'] text-xl uppercase font-bold text-white flex items-center gap-2">
-                <Plus className="h-5 w-5 text-[#f2e500]" />
-                <span>Registrar Nuevo Producto</span>
-              </h2>
-              <button
-                onClick={() => setShowProductModal(false)}
-                className="text-gray-500 hover:text-white transition-colors cursor-pointer"
-              >
-                <X className="h-5 w-5" />
-              </button>
+        {/* Filter & Search Bar */}
+        <div className="bg-[#0D0D0D] border border-[#1A1A1A] p-5 mb-10 shadow-xl">
+          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+            {/* Search Input */}
+            <div className="relative w-full md:w-96">
+              <Search className="absolute left-4 top-3.5 h-4 w-4 text-[#737373]" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="BUSCAR MARCA, SUPLEMENTO O SKU..."
+                className="w-full bg-black border border-[#2a2a2a] focus:border-[#f2e500] text-white pl-11 pr-4 py-3 text-xs outline-none font-['JetBrains_Mono'] placeholder-[#737373] transition-colors uppercase"
+              />
             </div>
 
-            <form onSubmit={handleCreateProduct} className="space-y-4">
+            {/* Category Anchor Pills */}
+            <div className="flex flex-wrap gap-2 w-full md:w-auto">
+              <button
+                onClick={() => setSelectedCat('ALL')}
+                className={`px-3.5 py-2 text-xs font-['JetBrains_Mono'] uppercase font-bold transition-all cursor-pointer interactive-press ${
+                  selectedCat === 'ALL'
+                    ? 'bg-[#f2e500] text-black font-black'
+                    : 'bg-[#141414] border border-[#2a2a2a] text-[#ccc7ab] hover:border-[#f2e500] hover:text-white'
+                }`}
+              >
+                Todas ({productos.length})
+              </button>
+              {categorias.map((c) => (
+                <button
+                  key={c.id_categoria}
+                  onClick={() => setSelectedCat(c.id_categoria)}
+                  className={`px-3.5 py-2 text-xs font-['JetBrains_Mono'] uppercase font-bold transition-all cursor-pointer interactive-press ${
+                    selectedCat === c.id_categoria
+                      ? 'bg-[#f2e500] text-black font-black'
+                      : 'bg-[#141414] border border-[#2a2a2a] text-[#ccc7ab] hover:border-[#f2e500] hover:text-white'
+                  }`}
+                >
+                  {c.nombre_categoria}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Loading State */}
+        {loading ? (
+          <div className="py-24 text-center text-[#ccc7ab] flex flex-col items-center justify-center gap-4 bg-[#0D0D0D] border border-[#1A1A1A]">
+            <div className="h-9 w-9 animate-spin border-2 border-[#f2e500] border-t-transparent rounded-full" />
+            <span className="font-['JetBrains_Mono'] text-xs uppercase tracking-widest text-[#f2e500]">
+              Consultando inventario en tiempo real...
+            </span>
+          </div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="py-20 text-center bg-[#0D0D0D] border border-[#1A1A1A]">
+            <p className="text-sm font-['Anybody'] text-white uppercase font-bold">
+              No se encontraron suplementos disponibles
+            </p>
+            <p className="font-['Hanken_Grotesk'] text-xs text-[#737373] mt-1">
+              Prueba cambiando los filtros o el término de búsqueda.
+            </p>
+          </div>
+        ) : viewMode === 'SECTIONS' ? (
+          /* ========================================================== */
+          /* MODO 1: VISTA POR SECCIONES CLASIFICADAS (Público & Admin) */
+          /* ========================================================== */
+          <div className="space-y-16">
+            {categorizedSections.map((section) => (
+              <section key={section.categoryName} className="relative">
+                {/* Section Header */}
+                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-[#222] mb-6">
+                  <div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-1.5 h-6 bg-[#f2e500]" />
+                      <h2 className="font-['Anybody'] text-2xl sm:text-3xl font-black text-white uppercase tracking-tight">
+                        {section.categoryName}
+                      </h2>
+                      <span className="px-2.5 py-0.5 bg-[#141414] border border-[#2a2a2a] text-[#f2e500] font-['JetBrains_Mono'] text-xs font-bold uppercase">
+                        {section.items.length} {section.items.length === 1 ? 'producto' : 'productos'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#ccc7ab] mt-1.5 ml-4 font-['Hanken_Grotesk'] max-w-2xl">
+                      {getCategoryDescription(section.categoryName)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Section Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {section.items.map((p, pIdx) => (
+                    <ProductCard
+                      key={p.id_producto}
+                      producto={p}
+                      onOpenModal={setSelectedProductModal}
+                      animationDelay={Math.min(pIdx, 8) * 30}
+                    />
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        ) : (
+          /* ========================================================== */
+          /* MODO 2: TABLA MAESTRA DE INVENTARIO (Solo Administrador)  */
+          /* ========================================================== */
+          <div className="bg-[#0D0D0D] border border-[#1A1A1A] overflow-hidden shadow-2xl">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs font-['JetBrains_Mono']">
+                <thead className="bg-black border-b border-[#1A1A1A] text-[#737373] uppercase tracking-wider">
+                  <tr>
+                    <th className="py-3.5 px-4 font-bold">Foto</th>
+                    <th className="py-3.5 px-4 font-bold">SKU</th>
+                    <th className="py-3.5 px-4 font-bold">Nombre Producto</th>
+                    <th className="py-3.5 px-4 font-bold">Categoría</th>
+                    <th className="py-3.5 px-4 font-bold text-right">Precio Oficial</th>
+                    <th className="py-3.5 px-4 font-bold text-center">Stock</th>
+                    <th className="py-3.5 px-4 font-bold text-center">Estado</th>
+                    <th className="py-3.5 px-4 font-bold text-center">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#1A1A1A]">
+                  {filteredProducts.map((p) => {
+                    const isOutOfStock = p.stock_actual <= 0;
+                    const isLowStock = p.stock_actual <= p.stock_seguridad;
+                    const pImg = getProductImage(p.codigo_sku, p.categoria?.nombre_categoria, p.imagen_url);
+
+                    return (
+                      <tr key={p.id_producto} className="hover:bg-[#141414] transition-colors">
+                        <td className="py-3 px-4">
+                          <div
+                            onClick={() => setSelectedProductModal(p)}
+                            className="h-12 w-12 bg-black border border-[#2a2a2a] p-1 flex items-center justify-center overflow-hidden cursor-pointer"
+                          >
+                            <img src={pImg} alt={p.nombre_producto} className="max-h-full max-w-full object-contain" />
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 font-bold text-[#f2e500]">[{p.codigo_sku}]</td>
+                        <td className="py-3 px-4 text-white font-['Anybody'] text-sm font-bold max-w-xs truncate">
+                          {p.nombre_producto}
+                        </td>
+                        <td className="py-3 px-4 text-[#ccc7ab]">
+                          {p.categoria?.nombre_categoria || 'SIN ASIGNAR'}
+                        </td>
+                        <td className="py-3 px-4 text-right font-bold text-white">
+                          Bs. {Number(p.precio_unitario).toFixed(2)}
+                        </td>
+                        <td className="py-3 px-4 text-center font-bold">
+                          <span
+                            className={
+                              isOutOfStock
+                                ? 'text-red-400'
+                                : isLowStock
+                                ? 'text-amber-400'
+                                : 'text-emerald-400'
+                            }
+                          >
+                            {p.stock_actual} uds
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <span
+                            className={`px-2 py-0.5 text-[10px] font-bold uppercase ${
+                              p.estado_activo ? 'bg-emerald-950/60 text-emerald-400' : 'bg-red-950/60 text-red-400'
+                            }`}
+                          >
+                            {p.estado_activo ? 'Activo' : 'Inactivo'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <button
+                            onClick={() => handleDeleteProduct(p.id_producto)}
+                            className="p-1.5 text-[#737373] hover:text-red-400 hover:bg-red-950/30 transition-colors cursor-pointer"
+                            title="Desactivar producto"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </main>
+
+      {/* Product Detail Modal */}
+      {selectedProductModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-md">
+          <div className="w-full max-w-2xl bg-[#0D0D0D] border border-[#1A1A1A] shadow-2xl relative overflow-hidden flex flex-col md:flex-row modal-enter">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-[#f2e500] z-20" />
+            <button
+              onClick={() => setSelectedProductModal(null)}
+              className="absolute top-4 right-4 z-30 p-2 text-[#737373] hover:text-white transition-colors cursor-pointer"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            {/* Modal Image */}
+            <div className="md:w-1/2 aspect-square md:aspect-auto bg-black relative overflow-hidden flex items-center justify-center p-6">
+              <img
+                src={getProductImage(
+                  selectedProductModal.codigo_sku,
+                  selectedProductModal.categoria?.nombre_categoria,
+                  selectedProductModal.imagen_url
+                )}
+                alt={selectedProductModal.nombre_producto}
+                className="max-h-[380px] w-auto object-contain drop-shadow-2xl"
+              />
+            </div>
+
+            {/* Modal Details */}
+            <div className="md:w-1/2 p-6 flex flex-col justify-between">
               <div>
-                <label className="block font-['JetBrains_Mono'] text-[11px] uppercase tracking-wider text-[#ccc7ab] mb-1.5">
-                  Código SKU
-                </label>
+                <span className="font-['JetBrains_Mono'] text-xs font-bold text-[#f2e500] uppercase tracking-wider block mb-1">
+                  [{selectedProductModal.codigo_sku}]
+                </span>
+                <h3 className="font-['Anybody'] text-2xl font-bold text-white uppercase tracking-tight mb-2">
+                  {selectedProductModal.nombre_producto}
+                </h3>
+                <span className="inline-block px-2.5 py-1 bg-[#1A1A1A] text-[#ccc7ab] font-['JetBrains_Mono'] text-[10px] uppercase tracking-wider mb-4 border border-[#2a2a2a]">
+                  {selectedProductModal.categoria?.nombre_categoria || 'GENERAL'}
+                </span>
+
+                {selectedProductModal.descripcion && (
+                  <p className="text-xs text-[#ccc7ab] font-['Hanken_Grotesk'] leading-relaxed mb-4 bg-[#141414] p-3 border border-[#222]">
+                    {selectedProductModal.descripcion}
+                  </p>
+                )}
+
+                <div className="space-y-2 text-xs font-['Hanken_Grotesk'] text-[#ccc7ab] mb-6 border-y border-[#1A1A1A] py-3">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="h-4 w-4 text-[#f2e500]" />
+                    <span>Control de stock serializado bajo PostgreSQL ACID.</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Award className="h-4 w-4 text-[#f2e500]" />
+                    <span>Certificación de pureza internacional.</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-emerald-400" />
+                    <span>Disponible para despacho inmediato en tienda.</span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between items-baseline mb-4">
+                  <span className="font-['JetBrains_Mono'] text-xs text-[#737373] uppercase">Precio Oficial:</span>
+                  <span className="font-['JetBrains_Mono'] text-3xl font-black text-[#f2e500]">
+                    Bs. {Number(selectedProductModal.precio_unitario).toFixed(2)}
+                  </span>
+                </div>
+
+                <div className="flex gap-3">
+                  {role === 'CAJERO' || role === 'ADMINISTRADOR' ? (
+                    <button
+                      onClick={() => navigate('/pos')}
+                      className="w-full spartan-btn-primary py-3 text-xs flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <ShoppingCart className="h-4 w-4 stroke-[3]" />
+                      <span>Ir al Punto de Venta</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        alert(
+                          'Para adquirir este producto, acércate a cualquiera de nuestras sucursales Spartan Bolivia o inicia sesión como usuario registrado.'
+                        );
+                        setSelectedProductModal(null);
+                      }}
+                      className="w-full spartan-btn-primary py-3 text-xs flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <span>Consultar en Sucursal</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Admin: Modal Crear Producto */}
+      {showProductModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-[#0D0D0D] border border-[#1A1A1A] p-6 shadow-2xl relative modal-enter">
+            <button
+              onClick={() => setShowProductModal(false)}
+              className="absolute top-4 right-4 text-[#737373] hover:text-white cursor-pointer"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <h3 className="font-['Anybody'] text-xl font-bold text-white uppercase tracking-tight mb-4 flex items-center gap-2">
+              <Plus className="h-5 w-5 text-[#f2e500]" />
+              <span>Registrar Nuevo Suplemento</span>
+            </h3>
+
+            <form onSubmit={handleCreateProduct} className="space-y-4 font-['JetBrains_Mono'] text-xs">
+              <div>
+                <label className="block text-[#ccc7ab] mb-1 uppercase">Código SKU *</label>
                 <input
                   type="text"
                   required
-                  placeholder="SKU-PROT-001"
+                  placeholder="EJ. SKU-PROT-099"
                   value={sku}
-                  onChange={(e) => setSku(e.target.value.toUpperCase())}
-                  className="w-full bg-[#141414] border border-[#2a2a2a] focus:border-[#f2e500] text-white px-3.5 py-2.5 text-xs outline-none font-['JetBrains_Mono']"
+                  onChange={(e) => setSku(e.target.value)}
+                  className="w-full bg-black border border-[#2a2a2a] focus:border-[#f2e500] text-white p-2.5 outline-none uppercase"
                 />
               </div>
 
               <div>
-                <label className="block font-['JetBrains_Mono'] text-[11px] uppercase tracking-wider text-[#ccc7ab] mb-1.5">
-                  Nombre del Producto
-                </label>
+                <label className="block text-[#ccc7ab] mb-1 uppercase">Nombre Comercial *</label>
                 <input
                   type="text"
                   required
-                  placeholder="100% WHEY GOLD STANDARD 5LBS"
+                  placeholder="EJ. ISOLATE WHEY 5LB"
                   value={nombre}
                   onChange={(e) => setNombre(e.target.value)}
-                  className="w-full bg-[#141414] border border-[#2a2a2a] focus:border-[#f2e500] text-white px-3.5 py-2.5 text-xs outline-none font-['Hanken_Grotesk']"
+                  className="w-full bg-black border border-[#2a2a2a] focus:border-[#f2e500] text-white p-2.5 outline-none uppercase"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-['JetBrains_Mono'] text-[11px] uppercase tracking-wider text-[#ccc7ab] mb-1.5">
-                    Categoría
-                  </label>
-                  <select
-                    value={categoriaId}
-                    onChange={(e) => setCategoriaId(Number(e.target.value))}
-                    className="w-full bg-[#141414] border border-[#2a2a2a] focus:border-[#f2e500] text-white px-3.5 py-2.5 text-xs outline-none font-['Hanken_Grotesk']"
-                  >
-                    {categorias.map((c) => (
-                      <option key={c.id_categoria} value={c.id_categoria} className="bg-[#141414] text-white">
-                        {c.nombre_categoria}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              <div>
+                <label className="block text-[#ccc7ab] mb-1 uppercase">Categoría *</label>
+                <select
+                  value={categoriaId}
+                  onChange={(e) => setCategoriaId(parseInt(e.target.value, 10))}
+                  className="w-full bg-black border border-[#2a2a2a] focus:border-[#f2e500] text-white p-2.5 outline-none uppercase"
+                >
+                  {categorias.map((c) => (
+                    <option key={c.id_categoria} value={c.id_categoria}>
+                      {c.nombre_categoria}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
+              <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block font-['JetBrains_Mono'] text-[11px] uppercase tracking-wider text-[#ccc7ab] mb-1.5">
-                    Precio Unitario (Bs.)
-                  </label>
+                  <label className="block text-[#ccc7ab] mb-1 uppercase">Precio (Bs) *</label>
                   <input
                     type="number"
-                    step="0.01"
+                    step="0.5"
                     required
-                    placeholder="250.00"
+                    placeholder="350.00"
                     value={precio}
                     onChange={(e) => setPrecio(e.target.value)}
-                    className="w-full bg-[#141414] border border-[#2a2a2a] focus:border-[#f2e500] text-white px-3.5 py-2.5 text-xs outline-none font-['JetBrains_Mono']"
+                    className="w-full bg-black border border-[#2a2a2a] focus:border-[#f2e500] text-white p-2.5 outline-none"
                   />
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-['JetBrains_Mono'] text-[11px] uppercase tracking-wider text-[#ccc7ab] mb-1.5">
-                    Stock Inicial
-                  </label>
+                  <label className="block text-[#ccc7ab] mb-1 uppercase">Stock Inicial</label>
                   <input
                     type="number"
-                    required
                     value={stock}
                     onChange={(e) => setStock(e.target.value)}
-                    className="w-full bg-[#141414] border border-[#2a2a2a] focus:border-[#f2e500] text-white px-3.5 py-2.5 text-xs outline-none font-['JetBrains_Mono']"
+                    className="w-full bg-black border border-[#2a2a2a] focus:border-[#f2e500] text-white p-2.5 outline-none"
                   />
                 </div>
-
                 <div>
-                  <label className="block font-['JetBrains_Mono'] text-[11px] uppercase tracking-wider text-[#ccc7ab] mb-1.5">
-                    Stock de Seguridad
-                  </label>
+                  <label className="block text-[#ccc7ab] mb-1 uppercase">Mínimo</label>
                   <input
                     type="number"
-                    required
                     value={stockSeguridad}
                     onChange={(e) => setStockSeguridad(e.target.value)}
-                    className="w-full bg-[#141414] border border-[#2a2a2a] focus:border-[#f2e500] text-white px-3.5 py-2.5 text-xs outline-none font-['JetBrains_Mono']"
+                    className="w-full bg-black border border-[#2a2a2a] focus:border-[#f2e500] text-white p-2.5 outline-none"
                   />
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-6 border-t border-[#1A1A1A] mt-6">
+              <div className="pt-4 flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setShowProductModal(false)}
-                  className="border border-[#2a2a2a] px-4 py-2.5 font-['JetBrains_Mono'] text-xs font-bold text-[#ccc7ab] hover:bg-[#1A1A1A] hover:text-white uppercase transition-colors cursor-pointer"
+                  className="spartan-btn-secondary px-4 py-2 cursor-pointer"
                 >
                   Cancelar
                 </button>
-                <button
-                  type="submit"
-                  className="bg-[#f2e500] text-black px-6 py-2.5 font-['JetBrains_Mono'] text-xs font-black uppercase hover:bg-white transition-colors cursor-pointer shadow-md"
-                >
+                <button type="submit" className="spartan-btn-primary px-5 py-2 cursor-pointer">
                   Guardar Producto
                 </button>
               </div>
@@ -517,52 +727,43 @@ export const Catalogo: React.FC = () => {
         </div>
       )}
 
-      {/* Modal: Crear Categoría */}
+      {/* Admin: Modal Crear Categoría */}
       {showCatModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md border border-[#1A1A1A] bg-[#0D0D0D] p-8 shadow-2xl relative text-xs">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-[#f2e500]" />
+          <div className="w-full max-w-sm bg-[#0D0D0D] border border-[#1A1A1A] p-6 shadow-2xl relative modal-enter">
+            <button
+              onClick={() => setShowCatModal(false)}
+              className="absolute top-4 right-4 text-[#737373] hover:text-white cursor-pointer"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <h3 className="font-['Anybody'] text-xl font-bold text-white uppercase tracking-tight mb-4 flex items-center gap-2">
+              <Layers className="h-5 w-5 text-[#f2e500]" />
+              <span>Nueva Categoría</span>
+            </h3>
 
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="font-['Anybody'] text-xl uppercase font-bold text-white flex items-center gap-2">
-                <Layers className="h-5 w-5 text-[#f2e500]" />
-                <span>Nueva Categoría</span>
-              </h2>
-              <button
-                onClick={() => setShowCatModal(false)}
-                className="text-gray-500 hover:text-white transition-colors cursor-pointer"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateCategoria} className="space-y-4">
+            <form onSubmit={handleCreateCategoria} className="space-y-4 font-['JetBrains_Mono'] text-xs">
               <div>
-                <label className="block font-['JetBrains_Mono'] text-[11px] uppercase tracking-wider text-[#ccc7ab] mb-1.5">
-                  Nombre de la Categoría
-                </label>
+                <label className="block text-[#ccc7ab] mb-1 uppercase">Nombre de Categoría *</label>
                 <input
                   type="text"
                   required
-                  placeholder="AMINOÁCIDOS & BCAA"
+                  placeholder="EJ. BARRAS & SNACKS"
                   value={nuevaCatNombre}
-                  onChange={(e) => setNuevaCatNombre(e.target.value.toUpperCase())}
-                  className="w-full bg-[#141414] border border-[#2a2a2a] focus:border-[#f2e500] text-white px-3.5 py-2.5 text-xs outline-none font-['JetBrains_Mono']"
+                  onChange={(e) => setNuevaCatNombre(e.target.value)}
+                  className="w-full bg-black border border-[#2a2a2a] focus:border-[#f2e500] text-white p-2.5 outline-none uppercase"
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-6 border-t border-[#1A1A1A] mt-6">
+              <div className="pt-4 flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setShowCatModal(false)}
-                  className="border border-[#2a2a2a] px-4 py-2.5 font-['JetBrains_Mono'] text-xs font-bold text-[#ccc7ab] hover:bg-[#1A1A1A] hover:text-white uppercase transition-colors cursor-pointer"
+                  className="spartan-btn-secondary px-4 py-2 cursor-pointer"
                 >
                   Cancelar
                 </button>
-                <button
-                  type="submit"
-                  className="bg-[#f2e500] text-black px-6 py-2.5 font-['JetBrains_Mono'] text-xs font-black uppercase hover:bg-white transition-colors cursor-pointer shadow-md"
-                >
+                <button type="submit" className="spartan-btn-primary px-5 py-2 cursor-pointer">
                   Crear Categoría
                 </button>
               </div>

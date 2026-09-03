@@ -55,19 +55,17 @@ export const Navbar: React.FC = () => {
             <span className="hidden sm:inline">Inicio</span>
           </Link>
 
-          {role === 'ADMINISTRADOR' && (
-            <Link
-              to="/catalogo"
-              className={`flex items-center gap-1.5 px-3 py-2 transition-colors ${
-                isActive('/catalogo')
-                  ? 'text-white border-b-2 border-[#f2e500] font-bold'
-                  : 'text-[#ccc7ab] hover:text-white'
-              }`}
-            >
-              <Package className="h-3.5 w-3.5" />
-              <span>Inventario</span>
-            </Link>
-          )}
+          <Link
+            to="/catalogo"
+            className={`flex items-center gap-1.5 px-3 py-2 transition-colors ${
+              isActive('/catalogo')
+                ? 'text-white border-b-2 border-[#f2e500] font-bold'
+                : 'text-[#ccc7ab] hover:text-white'
+            }`}
+          >
+            <Package className="h-3.5 w-3.5" />
+            <span>Catálogo</span>
+          </Link>
 
           {(role === 'CAJERO' || role === 'ADMINISTRADOR') && (
             <Link

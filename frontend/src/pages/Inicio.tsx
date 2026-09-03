@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import type { Producto, Categoria } from '../types';
 import { getProductImage, storeLogo } from '../utils/productImages';
 import heroCinematic from '../assets/hero_cinematic.jpg';
+import { ProductCard } from '../components/ProductCard';
 import {
   Search,
   ArrowRight,
@@ -12,7 +13,6 @@ import {
   Sparkles,
   Layers,
   ShoppingCart,
-  PackageCheck,
   LogIn,
   LogOut,
   ShieldCheck,
@@ -20,7 +20,6 @@ import {
   Award,
   Check,
   X,
-  Eye,
 } from 'lucide-react';
 
 export const Inicio: React.FC = () => {
@@ -294,26 +293,26 @@ export const Inicio: React.FC = () => {
             <div className="flex items-center gap-2 mb-2">
               <Sparkles className="h-4 w-4 text-[#f2e500]" />
               <span className="font-['JetBrains_Mono'] text-xs uppercase tracking-widest text-[#f2e500]">
-                Nutrición Deportiva Certificada
+                Selección Élite Spartan
               </span>
             </div>
             <h2 className="font-['Anybody'] text-3xl sm:text-4xl md:text-5xl text-white uppercase font-bold tracking-tight">
-              Catálogo <span className="text-[#f2e500]">Spartan</span>
+              Suplementos <span className="text-[#f2e500]">Destacados</span>
             </h2>
             <p className="font-['Hanken_Grotesk'] text-sm text-[#ccc7ab] mt-2 max-w-xl">
-              Cada lote cuenta con registro de kárdex, trazabilidad de lote y especificaciones de biodisponibilidad.
+              Una selección curada de nuestras formulaciones más demandadas. Accede a las 198 referencias autorizadas en la sección de Catálogo.
             </p>
           </div>
 
-          {role === 'ADMINISTRADOR' && (
+          <div className="flex items-center gap-3">
             <Link
               to="/catalogo"
-              className="inline-flex items-center gap-2 bg-[#141414] border border-[#2a2a2a] text-[#ccc7ab] hover:border-[#f2e500] hover:text-[#f2e500] font-['JetBrains_Mono'] text-xs uppercase px-5 py-3 font-bold transition-all cursor-pointer shadow-md"
+              className="spartan-btn-primary px-5 py-3 text-xs font-black uppercase flex items-center gap-2 cursor-pointer shadow-lg interactive-press"
             >
-              <Layers className="h-4 w-4 text-[#f2e500]" />
-              <span>Control Maestro ERP</span>
+              <Layers className="h-4 w-4" />
+              <span>Ver Catálogo Completo ({productos.length})</span>
             </Link>
-          )}
+          </div>
         </div>
 
         {/* Search & Category Filter Bar */}
@@ -325,7 +324,7 @@ export const Inicio: React.FC = () => {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="BUSCAR SUPLEMENTO O CÓDIGO SKU..."
+                placeholder="BUSCAR EN DESTACADOS (EJ. WHEY, CREATINA)..."
                 className="w-full bg-black border border-[#2a2a2a] focus:border-[#f2e500] text-white pl-11 pr-4 py-3 text-xs outline-none font-['JetBrains_Mono'] placeholder-[#737373] transition-colors uppercase"
               />
             </div>
@@ -340,9 +339,9 @@ export const Inicio: React.FC = () => {
                     : 'bg-[#141414] border border-[#2a2a2a] text-[#ccc7ab] hover:border-[#f2e500] hover:text-white'
                 }`}
               >
-                Todos ({productos.length})
+                Destacados ({Math.min(productos.length, 8)})
               </button>
-              {categorias.map((c) => (
+              {categorias.slice(0, 5).map((c) => (
                 <button
                   key={c.id_categoria}
                   onClick={() => setSelectedCat(c.id_categoria)}
@@ -359,7 +358,7 @@ export const Inicio: React.FC = () => {
           </div>
         </div>
 
-        {/* Product Grid with High-Definition Photos */}
+        {/* Featured Product Grid (Max 8 cards for a balanced, clean look) */}
         {loading ? (
           <div className="py-24 text-center text-[#ccc7ab] flex flex-col items-center justify-center gap-4 bg-[#0D0D0D] border border-[#1A1A1A]">
             <div className="h-9 w-9 animate-spin border-2 border-[#f2e500] border-t-transparent rounded-full" />
@@ -377,104 +376,45 @@ export const Inicio: React.FC = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredProducts.map((p, idx) => {
-              const isOutOfStock = p.stock_actual <= 0;
-              const isLowStock = p.stock_actual <= p.stock_seguridad;
-              const productImg = getProductImage(p.codigo_sku, p.categoria?.nombre_categoria, p.imagen_url);
-
-              return (
-                <div
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredProducts.slice(0, 8).map((p, idx) => (
+                <ProductCard
                   key={p.id_producto}
-                  style={{ animationDelay: `${Math.min(idx, 16) * 35}ms` }}
-                  className="spartan-glass flex flex-col justify-between group relative overflow-hidden shadow-2xl stagger-card"
-                >
-                  {/* Top Yellow Corner Accent */}
-                  <div className="absolute top-0 left-0 w-8 h-[2px] bg-[#f2e500] group-hover:w-full transition-all duration-500 z-30" />
+                  producto={p}
+                  onOpenModal={setSelectedProductModal}
+                  animationDelay={Math.min(idx, 8) * 35}
+                />
+              ))}
+            </div>
 
-                  {/* Product Image Showcase */}
-                  <div className="relative aspect-square w-full bg-black overflow-hidden img-vignette cursor-pointer flex items-center justify-center p-3" onClick={() => setSelectedProductModal(p)}>
-                    <img
-                      src={productImg}
-                      alt={p.nombre_producto}
-                      className="max-h-full max-w-full object-contain group-hover:scale-108 transition-transform duration-500 ease-out"
-                    />
-
-                    {/* Stock status overlay pill */}
-                    <div className="absolute top-3 right-3 z-20">
-                      <span
-                        className={`px-2.5 py-1 font-['JetBrains_Mono'] text-[10px] font-bold uppercase tracking-wider backdrop-blur-md ${
-                          isOutOfStock
-                            ? 'bg-red-950/80 text-red-400 border border-red-500/50'
-                            : isLowStock
-                            ? 'bg-amber-950/80 text-[#f2e500] border border-[#f2e500]/50'
-                            : 'bg-black/80 text-emerald-400 border border-emerald-500/40'
-                        }`}
-                      >
-                        {isOutOfStock ? 'Sin Existencias' : `${p.stock_actual} UDS`}
-                      </span>
-                    </div>
-
-                    {/* Quick view button on hover */}
-                    <div className="absolute inset-0 z-20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/40 backdrop-blur-[2px]">
-                      <span className="flex items-center gap-2 bg-[#f2e500] text-black font-['JetBrains_Mono'] text-xs font-black uppercase px-4 py-2 shadow-xl interactive-press">
-                        <Eye className="h-3.5 w-3.5 stroke-[3]" />
-                        <span>Ver Ficha Técnica</span>
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Product Meta & Details */}
-                  <div className="p-5 flex-1 flex flex-col justify-between">
-                    <div>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="font-['JetBrains_Mono'] text-[11px] font-bold text-[#f2e500] uppercase tracking-wider">
-                          [{p.codigo_sku}]
-                        </span>
-                        <span className="text-[10px] font-['JetBrains_Mono'] uppercase text-[#737373]">
-                          {p.categoria?.nombre_categoria || 'GENERAL'}
-                        </span>
-                      </div>
-
-                      <h3 className="font-['Anybody'] text-base font-bold text-white uppercase tracking-tight group-hover:text-[#f2e500] transition-colors line-clamp-2 mb-3">
-                        {p.nombre_producto}
-                      </h3>
-                    </div>
-
-                    {/* Price & Primary Action */}
-                    <div className="pt-4 border-t border-[#1A1A1A] mt-2">
-                      <div className="flex justify-between items-baseline mb-4">
-                        <span className="text-[9px] font-['JetBrains_Mono'] text-[#737373] uppercase tracking-widest">
-                          Precio Autorizado
-                        </span>
-                        <span className="font-['JetBrains_Mono'] text-2xl font-black text-white">
-                          Bs. {Number(p.precio_unitario).toFixed(2)}
-                        </span>
-                      </div>
-
-                      {role === 'CAJERO' || role === 'ADMINISTRADOR' ? (
-                        <button
-                          onClick={() => navigate('/pos')}
-                          className="w-full spartan-btn-secondary py-3 flex items-center justify-center gap-2 cursor-pointer shadow-md"
-                        >
-                          <ShoppingCart className="h-3.5 w-3.5" />
-                          <span>Vender en POS</span>
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => setSelectedProductModal(p)}
-                          className="w-full spartan-btn-primary py-3 text-xs flex items-center justify-center gap-2 cursor-pointer shadow-md"
-                        >
-                          <PackageCheck className="h-3.5 w-3.5 stroke-[3]" />
-                          <span>Consultar Disponibilidad</span>
-                        </button>
-                      )}
-                    </div>
-                  </div>
+            {/* Teaser CTA Banner to Full Classified Catalog */}
+            <div className="mt-14 p-8 sm:p-10 bg-gradient-to-r from-[#141414] via-[#0D0D0D] to-[#141414] border border-[#262626] hover:border-[#f2e500]/50 transition-colors shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6 group">
+              <div className="absolute -top-12 -right-12 w-64 h-64 bg-[#f2e500]/5 rounded-full blur-3xl pointer-events-none" />
+              <div className="relative z-10 max-w-2xl text-center md:text-left">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-black border border-[#f2e500]/40 text-[#f2e500] font-['JetBrains_Mono'] text-[10px] uppercase tracking-widest mb-3">
+                  <Layers className="h-3.5 w-3.5" />
+                  <span>Catálogo Completo Clasificado</span>
                 </div>
-              );
-            })}
-          </div>
+                <h3 className="font-['Anybody'] text-2xl sm:text-3xl text-white uppercase font-black tracking-tight">
+                  Explora las 7 Secciones del Catálogo ({productos.length} Suplementos)
+                </h3>
+                <p className="font-['Hanken_Grotesk'] text-sm text-[#ccc7ab] mt-2 leading-relaxed">
+                  Encuentra exactamente lo que tu entrenamiento necesita: Proteínas & Aislados, Creatinas, Pre-Entrenos, Ganadores de Masa, Aminoácidos y Salud Articular con stock físico verificado.
+                </p>
+              </div>
+
+              <div className="relative z-10 w-full md:w-auto flex justify-center">
+                <Link
+                  to="/catalogo"
+                  className="spartan-btn-primary px-8 py-4 text-xs font-black uppercase flex items-center justify-center gap-3 shadow-2xl whitespace-nowrap cursor-pointer interactive-press"
+                >
+                  <span>Explorar Catálogo por Secciones</span>
+                  <ArrowRight className="h-4 w-4 stroke-[3]" />
+                </Link>
+              </div>
+            </div>
+          </>
         )}
       </section>
 
