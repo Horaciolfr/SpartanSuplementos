@@ -283,7 +283,7 @@ export const Inicio: React.FC = () => {
             <div className="flex flex-wrap gap-2 w-full md:w-auto">
               <button
                 onClick={() => setSelectedCat('ALL')}
-                className={`px-4 py-2 text-xs font-['JetBrains_Mono'] uppercase font-bold transition-all cursor-pointer ${
+                className={`px-4 py-2 text-xs font-['JetBrains_Mono'] uppercase font-bold transition-all cursor-pointer interactive-press ${
                   selectedCat === 'ALL'
                     ? 'bg-[#f2e500] text-black font-black'
                     : 'bg-[#141414] border border-[#2a2a2a] text-[#ccc7ab] hover:border-[#f2e500] hover:text-white'
@@ -295,7 +295,7 @@ export const Inicio: React.FC = () => {
                 <button
                   key={c.id_categoria}
                   onClick={() => setSelectedCat(c.id_categoria)}
-                  className={`px-4 py-2 text-xs font-['JetBrains_Mono'] uppercase font-bold transition-all cursor-pointer ${
+                  className={`px-4 py-2 text-xs font-['JetBrains_Mono'] uppercase font-bold transition-all cursor-pointer interactive-press ${
                     selectedCat === c.id_categoria
                       ? 'bg-[#f2e500] text-black font-black'
                       : 'bg-[#141414] border border-[#2a2a2a] text-[#ccc7ab] hover:border-[#f2e500] hover:text-white'
@@ -327,7 +327,7 @@ export const Inicio: React.FC = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredProducts.map((p) => {
+            {filteredProducts.map((p, idx) => {
               const isOutOfStock = p.stock_actual <= 0;
               const isLowStock = p.stock_actual <= p.stock_seguridad;
               const productImg = getProductImage(p.codigo_sku, p.categoria?.nombre_categoria, p.imagen_url);
@@ -335,7 +335,8 @@ export const Inicio: React.FC = () => {
               return (
                 <div
                   key={p.id_producto}
-                  className="spartan-glass flex flex-col justify-between group relative overflow-hidden shadow-2xl"
+                  style={{ animationDelay: `${Math.min(idx, 16) * 35}ms` }}
+                  className="spartan-glass flex flex-col justify-between group relative overflow-hidden shadow-2xl stagger-card"
                 >
                   {/* Top Yellow Corner Accent */}
                   <div className="absolute top-0 left-0 w-8 h-[2px] bg-[#f2e500] group-hover:w-full transition-all duration-500 z-30" />
@@ -345,7 +346,7 @@ export const Inicio: React.FC = () => {
                     <img
                       src={productImg}
                       alt={p.nombre_producto}
-                      className="max-h-full max-w-full object-contain group-hover:scale-108 transition-transform duration-700 ease-out"
+                      className="max-h-full max-w-full object-contain group-hover:scale-108 transition-transform duration-500 ease-out"
                     />
 
                     {/* Stock status overlay pill */}
@@ -364,8 +365,8 @@ export const Inicio: React.FC = () => {
                     </div>
 
                     {/* Quick view button on hover */}
-                    <div className="absolute inset-0 z-20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/40 backdrop-blur-[2px]">
-                      <span className="flex items-center gap-2 bg-[#f2e500] text-black font-['JetBrains_Mono'] text-xs font-black uppercase px-4 py-2 shadow-xl">
+                    <div className="absolute inset-0 z-20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/40 backdrop-blur-[2px]">
+                      <span className="flex items-center gap-2 bg-[#f2e500] text-black font-['JetBrains_Mono'] text-xs font-black uppercase px-4 py-2 shadow-xl interactive-press">
                         <Eye className="h-3.5 w-3.5 stroke-[3]" />
                         <span>Ver Ficha Técnica</span>
                       </span>
@@ -403,7 +404,7 @@ export const Inicio: React.FC = () => {
                       {role === 'CAJERO' || role === 'ADMINISTRADOR' ? (
                         <button
                           onClick={() => navigate('/pos')}
-                          className="w-full bg-[#141414] hover:bg-[#f2e500] text-[#ccc7ab] hover:text-black border border-[#2a2a2a] hover:border-[#f2e500] font-['JetBrains_Mono'] text-xs uppercase font-black py-3 flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md"
+                          className="w-full spartan-btn-secondary py-3 flex items-center justify-center gap-2 cursor-pointer shadow-md"
                         >
                           <ShoppingCart className="h-3.5 w-3.5" />
                           <span>Vender en POS</span>
@@ -426,10 +427,10 @@ export const Inicio: React.FC = () => {
         )}
       </section>
 
-      {/* Product Detail Modal */}
+      {/* Product Detail Modal with Emil Kowalski modal-enter */}
       {selectedProductModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-md">
-          <div className="w-full max-w-2xl bg-[#0D0D0D] border border-[#1A1A1A] shadow-2xl relative overflow-hidden flex flex-col md:flex-row">
+          <div className="w-full max-w-2xl bg-[#0D0D0D] border border-[#1A1A1A] shadow-2xl relative overflow-hidden flex flex-col md:flex-row modal-enter">
             <div className="absolute top-0 left-0 right-0 h-1 bg-[#f2e500] z-20" />
             <button
               onClick={() => setSelectedProductModal(null)}

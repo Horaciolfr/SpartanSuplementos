@@ -416,7 +416,7 @@ export const POS: React.FC = () => {
                   <div className="flex items-center gap-1.5">
                     <button
                       onClick={() => updateQuantity(item.producto.id_producto, -1)}
-                      className="flex h-7 w-7 items-center justify-center border border-[#2a2a2a] bg-[#141414] text-[#ccc7ab] hover:border-[#f2e500] hover:text-white transition-colors cursor-pointer"
+                      className="flex h-7 w-7 items-center justify-center border border-[#2a2a2a] bg-[#141414] text-[#ccc7ab] hover:border-[#f2e500] hover:text-white transition-colors cursor-pointer interactive-press"
                     >
                       <Minus className="h-3 w-3" />
                     </button>
@@ -425,14 +425,14 @@ export const POS: React.FC = () => {
                     </span>
                     <button
                       onClick={() => updateQuantity(item.producto.id_producto, 1)}
-                      className="flex h-7 w-7 items-center justify-center border border-[#2a2a2a] bg-[#141414] text-[#ccc7ab] hover:border-[#f2e500] hover:text-white transition-colors cursor-pointer"
+                      className="flex h-7 w-7 items-center justify-center border border-[#2a2a2a] bg-[#141414] text-[#ccc7ab] hover:border-[#f2e500] hover:text-white transition-colors cursor-pointer interactive-press"
                     >
                       <Plus className="h-3 w-3" />
                     </button>
                     <button
                       onClick={() => removeFromCart(item.producto.id_producto)}
                       title="Quitar ítem"
-                      className="p-1 text-[#737373] hover:text-red-400 transition-colors ml-1 cursor-pointer"
+                      className="p-1 text-[#737373] hover:text-red-400 transition-colors ml-1 cursor-pointer interactive-press"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
@@ -466,7 +466,7 @@ export const POS: React.FC = () => {
           <button
             onClick={handleCheckout}
             disabled={cart.length === 0 || submitting}
-            className="flex w-full items-center justify-center gap-2 bg-[#f2e500] text-black font-['JetBrains_Mono'] text-xs font-black uppercase tracking-wider py-4 hover:bg-white transition-colors cursor-pointer shadow-xl disabled:opacity-30 disabled:pointer-events-none"
+            className="flex w-full items-center justify-center gap-2 bg-[#f2e500] text-black font-['JetBrains_Mono'] text-xs font-black uppercase tracking-wider py-4 hover:bg-white transition-colors cursor-pointer shadow-xl disabled:opacity-30 disabled:pointer-events-none interactive-press"
           >
             {submitting ? (
               <div className="flex items-center gap-2">
@@ -490,7 +490,7 @@ export const POS: React.FC = () => {
       {/* Official Certified Thermal Receipt Modal */}
       {reciboVenta && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-md">
-          <div className="w-full max-w-md bg-[#0D0D0D] border border-[#1A1A1A] p-6 shadow-2xl relative">
+          <div className="w-full max-w-md bg-[#0D0D0D] border border-[#1A1A1A] p-6 shadow-2xl relative modal-enter">
             {/* Top Yellow Accent Line */}
             <div className="absolute top-0 left-0 right-0 h-1 bg-[#f2e500]" />
 
