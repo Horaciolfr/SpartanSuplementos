@@ -35,7 +35,7 @@ export const Catalogo: React.FC = () => {
         apiClient.get<Producto[]>('/catalogo/productos'),
         apiClient.get<Categoria[]>('/catalogo/categorias'),
       ]);
-      setProductos(prodRes.data);
+      setProductos(prodRes.data.filter((p) => p.estado_activo));
       setCategorias(catRes.data);
       if (catRes.data.length > 0) {
         setCategoriaId((prev) => (prev === 0 ? catRes.data[0].id_categoria : prev));
