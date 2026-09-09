@@ -1,5 +1,5 @@
-from core.database import AsyncSessionLocal
+# Re-exportación canónica desde app.core.dependencies para compatibilidad retroactiva total
+from app.core.dependencies import get_db, get_current_user, require_roles, oauth2_scheme
 
-async def get_db():
-    async with AsyncSessionLocal() as session:
-        yield session
+__all__ = ["get_db", "get_current_user", "require_roles", "oauth2_scheme"]
+

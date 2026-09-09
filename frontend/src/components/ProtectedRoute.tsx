@@ -14,8 +14,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) 
     return (
       <div className="flex h-screen w-full items-center justify-center bg-[#0f1115]">
         <div className="flex flex-col items-center gap-4">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#d4af37] border-t-transparent"></div>
-          <span className="text-sm font-semibold tracking-wider text-gray-400 uppercase">Cargando Spartan ERP...</span>
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#f2e500] border-t-transparent"></div>
+          <span className="text-xs font-['JetBrains_Mono'] tracking-wider text-gray-400 uppercase">Cargando Spartan Suplementos...</span>
         </div>
       </div>
     );

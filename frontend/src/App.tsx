@@ -7,10 +7,12 @@ import { Login } from './pages/Login';
 import { Inicio } from './pages/Inicio';
 import { Catalogo } from './pages/Catalogo';
 import { POS } from './pages/POS';
+import { Toaster } from 'sonner';
 
 export const App: React.FC = () => {
   return (
     <AuthProvider>
+      <Toaster position="top-right" theme="dark" richColors closeButton />
       <BrowserRouter>
         <Routes>
           {/* Public Presentation & Catalog Routes */}

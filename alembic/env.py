@@ -25,9 +25,8 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# add your model's MetaData object here
-# for 'autogenerate' support
-from models import Base
+# Modelos canónicos del ERP y microservicios
+from app.models import Base
 target_metadata = Base.metadata
 
 # Override sqlalchemy.url with the environment variable

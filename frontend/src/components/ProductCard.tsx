@@ -4,6 +4,7 @@ import { getProductImage } from '../utils/productImages';
 import { Eye, ShoppingCart } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 interface ProductCardProps {
   producto: Producto;
@@ -52,9 +53,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const brandTag = extractBrand(producto.nombre_producto);
 
   return (
-    <div
-      style={{ animationDelay: `${animationDelay}ms` }}
-      className="group relative bg-gradient-to-b from-[#111111] via-[#0d0d0d] to-[#090909] border border-[#222222] hover:border-[#f2e500]/70 flex flex-col justify-between overflow-hidden shadow-xl hover:shadow-2xl hover:shadow-black/90 transition-all duration-300 hover:-translate-y-1 stagger-card"
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        duration: 0.4,
+        delay: Math.min(animationDelay / 1000, 0.3),
+        ease: [0.16, 1, 0.3, 1],
+      }}
+      whileHover={{ y: -6, transition: { duration: 0.25, ease: 'easeOut' } }}
+      className="group relative bg-gradient-to-b from-[#121212] via-[#0d0d0d] to-[#080808] border border-[#222222] hover:border-[#f2e500]/70 flex flex-col justify-between overflow-hidden shadow-xl hover:shadow-2xl hover:shadow-black/90 rounded-sm"
     >
       {/* Top Gold Accent Line */}
       <div className="absolute top-0 left-0 right-0 h-[2px] bg-transparent group-hover:bg-[#f2e500] transition-colors duration-300 z-30" />
@@ -65,7 +73,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         className="relative aspect-square w-full bg-gradient-to-b from-[#181818] to-[#0c0c0c] flex items-center justify-center p-5 overflow-hidden cursor-pointer img-vignette"
       >
         {/* Subtle Radial Glow on Bottle */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(242,229,0,0.08)_0%,transparent_70%)] opacity-40 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(242,229,0,0.09)_0%,transparent_70%)] opacity-40 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
         {/* Brand Tag Pill */}
         <div className="absolute top-3 left-3 z-20">
@@ -77,7 +85,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         {/* Stock Status Indicator Pill */}
         <div className="absolute top-3 right-3 z-20">
           <span
-            className={`inline-flex items-center gap-1 px-2 py-0.5 text-[9px] font-['JetBrains_Mono'] font-bold uppercase tracking-wider backdrop-blur-md border ${
+            className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-[9px] font-['JetBrains_Mono'] font-bold uppercase tracking-wider backdrop-blur-md border ${
               isOutOfStock
                 ? 'bg-red-950/80 text-red-400 border-red-500/40'
                 : isLowStock
@@ -87,19 +95,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           >
             <span
               className={`h-1.5 w-1.5 rounded-full ${
-                isOutOfStock ? 'bg-red-400' : isLowStock ? 'bg-[#f2e500]' : 'bg-emerald-400'
+                isOutOfStock ? 'bg-red-400' : isLowStock ? 'bg-[#f2e500]' : 'bg-emerald-400 animate-pulse'
               }`}
             />
-            {isOutOfStock ? 'Agotado' : `${producto.stock_actual} uds`}
+            {isOutOfStock ? 'Agotado' : `${producto.stock_actual} disponibles`}
           </span>
         </div>
 
         {/* High-res Product Photo */}
-        <img
+        <motion.img
           src={productImg}
           alt={producto.nombre_producto}
           loading="lazy"
-          className="max-h-full max-w-full object-contain drop-shadow-[0_8px_16px_rgba(0,0,0,0.8)] group-hover:scale-106 group-hover:drop-shadow-[0_12px_24px_rgba(0,0,0,0.95)] transition-all duration-400 ease-out z-10"
+          whileHover={{ scale: 1.06 }}
+          transition={{ duration: 0.35, ease: 'easeOut' }}
+          className="max-h-full max-w-full object-contain drop-shadow-[0_8px_16px_rgba(0,0,0,0.8)] z-10"
         />
 
         {/* Hover Quick View Trigger */}
@@ -141,7 +151,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         <div className="pt-3 border-t border-[#181818] mt-2 flex items-center justify-between gap-3">
           <div>
             <span className="text-[8px] font-['JetBrains_Mono'] uppercase tracking-widest text-[#737373] block">
-              Precio Autorizado
+              Precio Oficial
             </span>
             <div className="flex items-baseline gap-1">
               <span className="font-['JetBrains_Mono'] text-[11px] text-[#f2e500] font-bold">Bs.</span>
@@ -152,25 +162,27 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </div>
 
           {role === 'CAJERO' || role === 'ADMINISTRADOR' ? (
-            <button
+            <motion.button
+              whileTap={{ scale: 0.94 }}
               onClick={() => navigate('/pos')}
-              className="spartan-btn-secondary px-3.5 py-2 text-[11px] flex items-center gap-1.5 cursor-pointer shadow-md interactive-press"
-              title="Vender en POS"
+              className="spartan-btn-secondary px-3.5 py-2 text-[11px] flex items-center gap-1.5 cursor-pointer shadow-md"
+              title="Vender en Punto de Venta"
             >
               <ShoppingCart className="h-3 w-3" />
               <span className="hidden sm:inline">Vender</span>
-            </button>
+            </motion.button>
           ) : (
-            <button
+            <motion.button
+              whileTap={{ scale: 0.94 }}
               onClick={() => onOpenModal(producto)}
-              className="spartan-btn-primary px-3.5 py-2 text-[11px] flex items-center gap-1.5 cursor-pointer shadow-md interactive-press"
+              className="spartan-btn-primary px-3.5 py-2 text-[11px] flex items-center gap-1.5 cursor-pointer shadow-md"
             >
               <Eye className="h-3 w-3 stroke-[3]" />
               <span className="hidden sm:inline">Detalles</span>
-            </button>
+            </motion.button>
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };

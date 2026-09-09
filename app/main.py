@@ -20,10 +20,18 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Habilitar CORS para integración con Frontend SPA
+import os
+
+cors_origins_env = os.getenv(
+    "CORS_ORIGINS",
+    "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://localhost:80,http://localhost"
+)
+allowed_origins = [orig.strip() for orig in cors_origins_env.split(",") if orig.strip()]
+
+# Habilitar CORS con orígenes confiables para integración con Frontend SPA
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -6,7 +6,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from sqlalchemy import text
-from backend.core.database import engine
+from app.core.database import engine
 
 async def main():
     async with engine.connect() as conn:

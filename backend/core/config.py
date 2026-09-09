@@ -1,21 +1,5 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
-import os
+# Re-exportación canónica desde app.core.config para compatibilidad retroactiva total
+from app.core.config import settings, Settings
 
-class Settings(BaseSettings):
-    DATABASE_URL: str
-    SECRET_KEY: str = "e87b649d288d4041b31548e65813ec79f538e1245b738128362629b359f13775"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-    ADMIN_INITIAL_PASSWORD: str = "SpartanAdmin2026!"
-    ALGORITHM: str = "HS256"
+__all__ = ["settings", "Settings"]
 
-    @property
-    def database_url(self) -> str:
-        return self.DATABASE_URL
-
-    model_config = SettingsConfigDict(
-        env_file=os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), ".env"),
-        env_file_encoding="utf-8",
-        extra="ignore"
-    )
-
-settings = Settings()

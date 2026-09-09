@@ -52,21 +52,13 @@ export const Login: React.FC = () => {
       <div className="fixed inset-0 z-0 bg-gradient-to-t from-[#080808] via-[#080808]/90 to-[#080808]/80 pointer-events-none" />
 
       {/* Top Header */}
-      <header className="w-full h-20 border-b border-[#1A1A1A] flex justify-between items-center px-6 sm:px-12 relative z-10 bg-black/70 backdrop-blur-xl">
-        <Link to="/" className="flex items-center gap-3 group">
+      <header className="w-full h-24 border-b border-[#1A1A1A] flex justify-between items-center px-6 sm:px-12 relative z-10 bg-black/70 backdrop-blur-xl">
+        <Link to="/" className="flex items-center group py-2">
           <img
             src={storeLogo}
             alt="Spartan Suplementos Bolivia"
-            className="h-12 w-auto object-contain group-hover:scale-105 transition-transform duration-300"
+            className="h-14 sm:h-16 md:h-20 w-auto object-contain group-hover:scale-105 transition-transform duration-300 drop-shadow-md"
           />
-          <div className="hidden sm:block">
-            <span className="font-['Anybody'] text-xl text-[#f2e500] italic font-black uppercase tracking-tighter block leading-none">
-              SPARTAN
-            </span>
-            <span className="text-[9px] font-['JetBrains_Mono'] tracking-widest text-[#ccc7ab] uppercase block">
-              Suplementos Bolivia
-            </span>
-          </div>
         </Link>
         <div className="flex items-center gap-6">
           <Link
@@ -100,7 +92,7 @@ export const Login: React.FC = () => {
             <img
               src={storeLogo}
               alt="Spartan Logo"
-              className="h-20 w-auto mx-auto mb-4 object-contain"
+              className="h-28 w-auto mx-auto mb-4 object-contain drop-shadow-lg"
             />
             <h1 className="font-['Anybody'] text-3xl sm:text-4xl text-white uppercase font-bold tracking-tight mb-1">
               Ingresar

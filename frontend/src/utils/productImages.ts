@@ -2,7 +2,7 @@ import productWhey from '../assets/product_whey.jpg';
 import productCreatina from '../assets/product_creatina.jpg';
 import productPreentreno from '../assets/product_preentreno.jpg';
 import productApparel from '../assets/product_apparel.jpg';
-import storeLogo from '../assets/logo.jpg';
+import storeLogo from '../assets/logo.png';
 
 export { storeLogo };
 

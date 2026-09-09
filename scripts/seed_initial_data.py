@@ -6,10 +6,10 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "backend"))
 
 from sqlalchemy import select
-from backend.core.database import AsyncSessionLocal, engine
-from backend.models.catalogs import RolSistema, TipoDocumento, TipoOperacionKardex, CatalogoSomatotipo, CatalogoGenero
-from backend.models.users import Usuario, Proveedor
-from backend.models.products import CategoriaProducto, Producto
+from app.core.database import AsyncSessionLocal, engine
+from app.models.catalogs import RolSistema, TipoDocumento, TipoOperacionKardex, CatalogoSomatotipo, CatalogoGenero
+from app.models.users import Usuario, Proveedor
+from app.models.products import CategoriaProducto, Producto
 
 async def seed():
     async with AsyncSessionLocal() as session:

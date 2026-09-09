@@ -5,36 +5,30 @@ import { getErrorMessage } from '../utils/errors';
 import {
   Plus,
   Search,
-  Layers,
-  AlertCircle,
-  CheckCircle2,
-  Trash2,
-  X,
   Sparkles,
-  ShieldCheck,
-  Award,
-  Check,
-  ShoppingCart,
   LayoutGrid,
   Table,
 } from 'lucide-react';
-import { ProductCard } from '../components/ProductCard';
-import { Navbar } from '../components/Navbar';
+import {
+  Navbar,
+  ProductCard,
+  ProductDetailModal,
+  CreateProductModal,
+  CreateCategoryModal,
+  InventoryTable,
+} from '../components';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { getProductImage } from '../utils/productImages';
+import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 
 export const Catalogo: React.FC = () => {
   const { role } = useAuth();
-  const navigate = useNavigate();
 
   const [productos, setProductos] = useState<Producto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedCat, setSelectedCat] = useState<number | 'ALL'>('ALL');
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   // View Mode: 'SECTIONS' (Public categorized showcase) vs 'TABLE' (Admin Inventory Manager)
   const [viewMode, setViewMode] = useState<'SECTIONS' | 'TABLE'>('SECTIONS');
@@ -57,7 +51,6 @@ export const Catalogo: React.FC = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    setError(null);
     try {
       // 1. Obtener productos activos de la API pública
       const prodRes = await apiClient.get<Producto[]>('/catalogo/productos');
@@ -90,7 +83,7 @@ export const Catalogo: React.FC = () => {
         }
       }
     } catch (err: any) {
-      setError(getErrorMessage(err, 'Error al cargar datos del catálogo'));
+      toast.error(getErrorMessage(err, 'Error al cargar catálogo'));
     } finally {
       setLoading(false);
     }
@@ -103,17 +96,16 @@ export const Catalogo: React.FC = () => {
   // Manejador de creación de producto (Admin)
   const handleCreateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
 
     const priceNum = parseFloat(precio);
     if (isNaN(priceNum) || priceNum <= 0) {
-      setError('El precio unitario debe ser un número mayor a 0');
+      toast.error('El precio unitario debe ser un número mayor a 0');
       return;
     }
 
     const targetCatId = categoriaId !== 0 ? categoriaId : categorias[0]?.id_categoria;
     if (!targetCatId) {
-      setError('Debes crear o seleccionar al menos una categoría válida antes de registrar un producto');
+      toast.error('Debes crear o seleccionar al menos una categoría válida antes de registrar un producto');
       return;
     }
 
@@ -127,24 +119,23 @@ export const Catalogo: React.FC = () => {
         stock_seguridad: parseInt(stockSeguridad, 10) || 0,
         estado_activo: true,
       });
-      setSuccess(`Producto ${sku} registrado exitosamente`);
+      toast.success(`Producto ${sku} registrado exitosamente`);
       setShowProductModal(false);
       setSku('');
       setNombre('');
       setPrecio('');
       fetchData();
     } catch (err: any) {
-      setError(getErrorMessage(err, 'Error al crear producto'));
+      toast.error(getErrorMessage(err, 'Error al crear producto'));
     }
   };
 
   // Manejador de creación de categoría (Admin)
   const handleCreateCategoria = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
 
     if (!nuevaCatNombre.trim()) {
-      setError('El nombre de la categoría no puede estar vacío');
+      toast.error('El nombre de la categoría no puede estar vacío');
       return;
     }
 
@@ -152,12 +143,12 @@ export const Catalogo: React.FC = () => {
       await apiClient.post('/catalogo/categorias', {
         nombre_categoria: nuevaCatNombre.trim(),
       });
-      setSuccess(`Categoría "${nuevaCatNombre}" creada exitosamente`);
+      toast.success(`Categoría "${nuevaCatNombre}" creada exitosamente`);
       setNuevaCatNombre('');
       setShowCatModal(false);
       fetchData();
     } catch (err: any) {
-      setError(getErrorMessage(err, 'Error al crear categoría'));
+      toast.error(getErrorMessage(err, 'Error al crear categoría'));
     }
   };
 
@@ -166,10 +157,10 @@ export const Catalogo: React.FC = () => {
     if (!window.confirm('¿Confirmas la desactivación de este producto?')) return;
     try {
       await apiClient.delete(`/catalogo/productos/${id}`);
-      setSuccess('Producto desactivado exitosamente');
+      toast.success('Producto desactivado exitosamente');
       fetchData();
     } catch (err: any) {
-      setError(getErrorMessage(err, 'Error al desactivar producto'));
+      toast.error(getErrorMessage(err, 'Error al desactivar producto'));
     }
   };
 
@@ -197,7 +188,6 @@ export const Catalogo: React.FC = () => {
       groups[catName].items.push(p);
     });
 
-    // Ordenar para que aparezcan en orden lógico: Creatinas, Proteínas, Pre-entrenos, Gainers, Aminoácidos, Quemadores, Salud
     const preferredOrder = [
       'CREATINAS & FUERZA',
       'SUPLEMENTOS PROTEICOS',
@@ -228,21 +218,21 @@ export const Catalogo: React.FC = () => {
   const getCategoryDescription = (name: string) => {
     switch (name) {
       case 'CREATINAS & FUERZA':
-        return 'Potencia anaeróbica explosiva, resíntesis acelerada de fosfocreatina ATP e hipertrofia celular.';
+        return 'Potencia muscular explosiva, máxima fuerza y aceleración en la recuperación física.';
       case 'SUPLEMENTOS PROTEICOS':
-        return 'Aislados (Isolates) y concentrados microfiltrados de máxima absorción y balance de nitrógeno.';
+        return 'Aislados y concentrados microfiltrados de máxima absorción para crecimiento muscular magro.';
       case 'PRE-ENTRENOS & ENERGIA':
-        return 'Complejos con cafeína anhidra, beta-alanina y vasodilatadores de óxido nítrico para entrenamientos extremos.';
+        return 'Complejos con cafeína, beta-alanina y vasodilatadores para entrenamientos de máxima intensidad.';
       case 'GANADORES DE MASA (MASS GAINERS)':
-        return 'Fórmulas hipercalóricas con carbohidratos complejos, BCAAs y perfil lipídico para superávit calórico.';
+        return 'Fórmulas hipercalóricas enriquecidas con carbohidratos limpios y aminoácidos para volumen.';
       case 'AMINOACIDOS & RECUPERACION':
-        return 'Leucina, isoleucina, valina (2:1:1) y glutamina micronizada para frenar el catabolismo muscular.';
+        return 'BCAAs y glutamina micronizada para frenar la fatiga y acelerar la reconstrucción de fibras.';
       case 'QUEMADORES & DEFINICION':
-        return 'Termogénicos y lipotrópicos con L-Carnitina para acelerar el metabolismo y preservación magra.';
+        return 'Termogénicos y L-Carnitina para optimizar la energía metabólica y definir la masa muscular.';
       case 'SALUD, VITAMINAS & ARTICULACIONES':
-        return 'Omega 3 premium, colágeno hidrolizado, magnesio y adaptógenos para longevidad articular y hormonal.';
+        return 'Omega 3, colágeno y multivitamínicos para cuidar articulaciones y mantener tu salud al 100%.';
       default:
-        return 'Formulaciones certificadas de nutrición deportiva de grado élite con control físico en Kárdex.';
+        return 'Formulaciones certificadas de nutrición deportiva de grado élite disponibles en nuestras sucursales.';
     }
   };
 
@@ -251,49 +241,24 @@ export const Catalogo: React.FC = () => {
       <Navbar />
 
       <main className="flex-1 max-w-[1360px] mx-auto px-6 py-10 w-full">
-        {/* Alerts */}
-        {error && (
-          <div className="mb-6 bg-red-950/40 border border-red-500/50 p-4 text-xs font-['JetBrains_Mono'] text-red-200 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 text-red-400" />
-              <span>{error}</span>
-            </div>
-            <button onClick={() => setError(null)} className="text-red-400 hover:text-white cursor-pointer">
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-        )}
-
-        {success && (
-          <div className="mb-6 bg-emerald-950/40 border border-emerald-500/50 p-4 text-xs font-['JetBrains_Mono'] text-emerald-200 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-              <span>{success}</span>
-            </div>
-            <button onClick={() => setSuccess(null)} className="text-emerald-400 hover:text-white cursor-pointer">
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-        )}
-
         {/* Page Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10 pb-8 border-b border-[#1A1A1A]">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Sparkles className="h-4 w-4 text-[#f2e500]" />
               <span className="font-['JetBrains_Mono'] text-xs uppercase tracking-widest text-[#f2e500]">
-                Catálogo Maestro Autorizado — Bolivia 2026
+                Catálogo Oficial Spartan — Bolivia 2026
               </span>
             </div>
             <h1 className="font-['Anybody'] text-4xl sm:text-5xl font-black text-white uppercase tracking-tight">
               Catálogo por <span className="text-[#f2e500]">Secciones</span>
             </h1>
             <p className="text-sm text-[#ccc7ab] mt-2 max-w-2xl leading-relaxed">
-              Explora las {productos.length} referencias de suplementos nutricionales de grado élite, agrupadas rigurosamente por su objetivo metabólico y composición química.
+              Explora nuestras {productos.length} referencias de suplementos nutricionales de grado élite, agrupadas por su objetivo deportivo y composición.
             </p>
           </div>
 
-          {/* View Mode Switcher (para Administrador) o Contador para público */}
+          {/* View Mode Switcher (para Administrador) */}
           <div className="flex flex-wrap items-center gap-3">
             {role === 'ADMINISTRADOR' && (
               <div className="flex items-center bg-[#141414] border border-[#2a2a2a] p-1">
@@ -313,27 +278,29 @@ export const Catalogo: React.FC = () => {
                   }`}
                 >
                   <Table className="h-3.5 w-3.5" />
-                  <span>Tabla de Inventario</span>
+                  <span>Gestión de Stock</span>
                 </button>
               </div>
             )}
 
             {role === 'ADMINISTRADOR' && viewMode === 'TABLE' && (
               <div className="flex gap-2">
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => setShowCatModal(true)}
-                  className="spartan-btn-secondary px-4 py-2.5 text-xs flex items-center gap-1.5 cursor-pointer interactive-press"
+                  className="spartan-btn-secondary px-4 py-2.5 text-xs flex items-center gap-1.5 cursor-pointer shadow-md"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   <span>Nueva Categoría</span>
-                </button>
-                <button
+                </motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => setShowProductModal(true)}
-                  className="spartan-btn-primary px-4 py-2.5 text-xs flex items-center gap-1.5 cursor-pointer interactive-press shadow-md"
+                  className="spartan-btn-primary px-4 py-2.5 text-xs flex items-center gap-1.5 cursor-pointer shadow-md"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   <span>Nuevo Producto</span>
-                </button>
+                </motion.button>
               </div>
             )}
           </div>
@@ -356,28 +323,30 @@ export const Catalogo: React.FC = () => {
 
             {/* Category Anchor Pills */}
             <div className="flex flex-wrap gap-2 w-full md:w-auto">
-              <button
+              <motion.button
+                whileTap={{ scale: 0.94 }}
                 onClick={() => setSelectedCat('ALL')}
-                className={`px-3.5 py-2 text-xs font-['JetBrains_Mono'] uppercase font-bold transition-all cursor-pointer interactive-press ${
+                className={`px-3.5 py-2 text-xs font-['JetBrains_Mono'] uppercase font-bold transition-all cursor-pointer ${
                   selectedCat === 'ALL'
                     ? 'bg-[#f2e500] text-black font-black'
                     : 'bg-[#141414] border border-[#2a2a2a] text-[#ccc7ab] hover:border-[#f2e500] hover:text-white'
                 }`}
               >
                 Todas ({productos.length})
-              </button>
+              </motion.button>
               {categorias.map((c) => (
-                <button
+                <motion.button
                   key={c.id_categoria}
+                  whileTap={{ scale: 0.94 }}
                   onClick={() => setSelectedCat(c.id_categoria)}
-                  className={`px-3.5 py-2 text-xs font-['JetBrains_Mono'] uppercase font-bold transition-all cursor-pointer interactive-press ${
+                  className={`px-3.5 py-2 text-xs font-['JetBrains_Mono'] uppercase font-bold transition-all cursor-pointer ${
                     selectedCat === c.id_categoria
                       ? 'bg-[#f2e500] text-black font-black'
                       : 'bg-[#141414] border border-[#2a2a2a] text-[#ccc7ab] hover:border-[#f2e500] hover:text-white'
                   }`}
                 >
                   {c.nombre_categoria}
-                </button>
+                </motion.button>
               ))}
             </div>
           </div>
@@ -388,7 +357,7 @@ export const Catalogo: React.FC = () => {
           <div className="py-24 text-center text-[#ccc7ab] flex flex-col items-center justify-center gap-4 bg-[#0D0D0D] border border-[#1A1A1A]">
             <div className="h-9 w-9 animate-spin border-2 border-[#f2e500] border-t-transparent rounded-full" />
             <span className="font-['JetBrains_Mono'] text-xs uppercase tracking-widest text-[#f2e500]">
-              Consultando inventario en tiempo real...
+              Consultando catálogo en tiempo real...
             </span>
           </div>
         ) : filteredProducts.length === 0 ? (
@@ -441,336 +410,51 @@ export const Catalogo: React.FC = () => {
           </div>
         ) : (
           /* ========================================================== */
-          /* MODO 2: TABLA MAESTRA DE INVENTARIO (Solo Administrador)  */
+          /* MODO 2: TABLA DE STOCK (Solo Administrador)                */
           /* ========================================================== */
-          <div className="bg-[#0D0D0D] border border-[#1A1A1A] overflow-hidden shadow-2xl">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs font-['JetBrains_Mono']">
-                <thead className="bg-black border-b border-[#1A1A1A] text-[#737373] uppercase tracking-wider">
-                  <tr>
-                    <th className="py-3.5 px-4 font-bold">Foto</th>
-                    <th className="py-3.5 px-4 font-bold">SKU</th>
-                    <th className="py-3.5 px-4 font-bold">Nombre Producto</th>
-                    <th className="py-3.5 px-4 font-bold">Categoría</th>
-                    <th className="py-3.5 px-4 font-bold text-right">Precio Oficial</th>
-                    <th className="py-3.5 px-4 font-bold text-center">Stock</th>
-                    <th className="py-3.5 px-4 font-bold text-center">Estado</th>
-                    <th className="py-3.5 px-4 font-bold text-center">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#1A1A1A]">
-                  {filteredProducts.map((p) => {
-                    const isOutOfStock = p.stock_actual <= 0;
-                    const isLowStock = p.stock_actual <= p.stock_seguridad;
-                    const pImg = getProductImage(p.codigo_sku, p.categoria?.nombre_categoria, p.imagen_url);
-
-                    return (
-                      <tr key={p.id_producto} className="hover:bg-[#141414] transition-colors">
-                        <td className="py-3 px-4">
-                          <div
-                            onClick={() => setSelectedProductModal(p)}
-                            className="h-12 w-12 bg-black border border-[#2a2a2a] p-1 flex items-center justify-center overflow-hidden cursor-pointer"
-                          >
-                            <img src={pImg} alt={p.nombre_producto} className="max-h-full max-w-full object-contain" />
-                          </div>
-                        </td>
-                        <td className="py-3 px-4 font-bold text-[#f2e500]">[{p.codigo_sku}]</td>
-                        <td className="py-3 px-4 text-white font-['Anybody'] text-sm font-bold max-w-xs truncate">
-                          {p.nombre_producto}
-                        </td>
-                        <td className="py-3 px-4 text-[#ccc7ab]">
-                          {p.categoria?.nombre_categoria || 'SIN ASIGNAR'}
-                        </td>
-                        <td className="py-3 px-4 text-right font-bold text-white">
-                          Bs. {Number(p.precio_unitario).toFixed(2)}
-                        </td>
-                        <td className="py-3 px-4 text-center font-bold">
-                          <span
-                            className={
-                              isOutOfStock
-                                ? 'text-red-400'
-                                : isLowStock
-                                ? 'text-amber-400'
-                                : 'text-emerald-400'
-                            }
-                          >
-                            {p.stock_actual} uds
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          <span
-                            className={`px-2 py-0.5 text-[10px] font-bold uppercase ${
-                              p.estado_activo ? 'bg-emerald-950/60 text-emerald-400' : 'bg-red-950/60 text-red-400'
-                            }`}
-                          >
-                            {p.estado_activo ? 'Activo' : 'Inactivo'}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          <button
-                            onClick={() => handleDeleteProduct(p.id_producto)}
-                            className="p-1.5 text-[#737373] hover:text-red-400 hover:bg-red-950/30 transition-colors cursor-pointer"
-                            title="Desactivar producto"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <InventoryTable
+            productos={filteredProducts}
+            onSelectProduct={setSelectedProductModal}
+            onDeleteProduct={handleDeleteProduct}
+          />
         )}
       </main>
 
-      {/* Product Detail Modal */}
-      {selectedProductModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-md">
-          <div className="w-full max-w-2xl bg-[#0D0D0D] border border-[#1A1A1A] shadow-2xl relative overflow-hidden flex flex-col md:flex-row modal-enter">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-[#f2e500] z-20" />
-            <button
-              onClick={() => setSelectedProductModal(null)}
-              className="absolute top-4 right-4 z-30 p-2 text-[#737373] hover:text-white transition-colors cursor-pointer"
-            >
-              <X className="h-5 w-5" />
-            </button>
-
-            {/* Modal Image */}
-            <div className="md:w-1/2 aspect-square md:aspect-auto bg-black relative overflow-hidden flex items-center justify-center p-6">
-              <img
-                src={getProductImage(
-                  selectedProductModal.codigo_sku,
-                  selectedProductModal.categoria?.nombre_categoria,
-                  selectedProductModal.imagen_url
-                )}
-                alt={selectedProductModal.nombre_producto}
-                className="max-h-[380px] w-auto object-contain drop-shadow-2xl"
-              />
-            </div>
-
-            {/* Modal Details */}
-            <div className="md:w-1/2 p-6 flex flex-col justify-between">
-              <div>
-                <span className="font-['JetBrains_Mono'] text-xs font-bold text-[#f2e500] uppercase tracking-wider block mb-1">
-                  [{selectedProductModal.codigo_sku}]
-                </span>
-                <h3 className="font-['Anybody'] text-2xl font-bold text-white uppercase tracking-tight mb-2">
-                  {selectedProductModal.nombre_producto}
-                </h3>
-                <span className="inline-block px-2.5 py-1 bg-[#1A1A1A] text-[#ccc7ab] font-['JetBrains_Mono'] text-[10px] uppercase tracking-wider mb-4 border border-[#2a2a2a]">
-                  {selectedProductModal.categoria?.nombre_categoria || 'GENERAL'}
-                </span>
-
-                {selectedProductModal.descripcion && (
-                  <p className="text-xs text-[#ccc7ab] font-['Hanken_Grotesk'] leading-relaxed mb-4 bg-[#141414] p-3 border border-[#222]">
-                    {selectedProductModal.descripcion}
-                  </p>
-                )}
-
-                <div className="space-y-2 text-xs font-['Hanken_Grotesk'] text-[#ccc7ab] mb-6 border-y border-[#1A1A1A] py-3">
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="h-4 w-4 text-[#f2e500]" />
-                    <span>Control de stock serializado bajo PostgreSQL ACID.</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Award className="h-4 w-4 text-[#f2e500]" />
-                    <span>Certificación de pureza internacional.</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-emerald-400" />
-                    <span>Disponible para despacho inmediato en tienda.</span>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between items-baseline mb-4">
-                  <span className="font-['JetBrains_Mono'] text-xs text-[#737373] uppercase">Precio Oficial:</span>
-                  <span className="font-['JetBrains_Mono'] text-3xl font-black text-[#f2e500]">
-                    Bs. {Number(selectedProductModal.precio_unitario).toFixed(2)}
-                  </span>
-                </div>
-
-                <div className="flex gap-3">
-                  {role === 'CAJERO' || role === 'ADMINISTRADOR' ? (
-                    <button
-                      onClick={() => navigate('/pos')}
-                      className="w-full spartan-btn-primary py-3 text-xs flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      <ShoppingCart className="h-4 w-4 stroke-[3]" />
-                      <span>Ir al Punto de Venta</span>
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => {
-                        alert(
-                          'Para adquirir este producto, acércate a cualquiera de nuestras sucursales Spartan Bolivia o inicia sesión como usuario registrado.'
-                        );
-                        setSelectedProductModal(null);
-                      }}
-                      className="w-full spartan-btn-primary py-3 text-xs flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      <span>Consultar en Sucursal</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Modal Ficha Técnica del Producto */}
+      <ProductDetailModal
+        producto={selectedProductModal}
+        onClose={() => setSelectedProductModal(null)}
+        role={role}
+      />
 
       {/* Admin: Modal Crear Producto */}
-      {showProductModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-[#0D0D0D] border border-[#1A1A1A] p-6 shadow-2xl relative modal-enter">
-            <button
-              onClick={() => setShowProductModal(false)}
-              className="absolute top-4 right-4 text-[#737373] hover:text-white cursor-pointer"
-            >
-              <X className="h-5 w-5" />
-            </button>
-            <h3 className="font-['Anybody'] text-xl font-bold text-white uppercase tracking-tight mb-4 flex items-center gap-2">
-              <Plus className="h-5 w-5 text-[#f2e500]" />
-              <span>Registrar Nuevo Suplemento</span>
-            </h3>
-
-            <form onSubmit={handleCreateProduct} className="space-y-4 font-['JetBrains_Mono'] text-xs">
-              <div>
-                <label className="block text-[#ccc7ab] mb-1 uppercase">Código SKU *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="EJ. SKU-PROT-099"
-                  value={sku}
-                  onChange={(e) => setSku(e.target.value)}
-                  className="w-full bg-black border border-[#2a2a2a] focus:border-[#f2e500] text-white p-2.5 outline-none uppercase"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[#ccc7ab] mb-1 uppercase">Nombre Comercial *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="EJ. ISOLATE WHEY 5LB"
-                  value={nombre}
-                  onChange={(e) => setNombre(e.target.value)}
-                  className="w-full bg-black border border-[#2a2a2a] focus:border-[#f2e500] text-white p-2.5 outline-none uppercase"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[#ccc7ab] mb-1 uppercase">Categoría *</label>
-                <select
-                  value={categoriaId}
-                  onChange={(e) => setCategoriaId(parseInt(e.target.value, 10))}
-                  className="w-full bg-black border border-[#2a2a2a] focus:border-[#f2e500] text-white p-2.5 outline-none uppercase"
-                >
-                  {categorias.map((c) => (
-                    <option key={c.id_categoria} value={c.id_categoria}>
-                      {c.nombre_categoria}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-[#ccc7ab] mb-1 uppercase">Precio (Bs) *</label>
-                  <input
-                    type="number"
-                    step="0.5"
-                    required
-                    placeholder="350.00"
-                    value={precio}
-                    onChange={(e) => setPrecio(e.target.value)}
-                    className="w-full bg-black border border-[#2a2a2a] focus:border-[#f2e500] text-white p-2.5 outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[#ccc7ab] mb-1 uppercase">Stock Inicial</label>
-                  <input
-                    type="number"
-                    value={stock}
-                    onChange={(e) => setStock(e.target.value)}
-                    className="w-full bg-black border border-[#2a2a2a] focus:border-[#f2e500] text-white p-2.5 outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[#ccc7ab] mb-1 uppercase">Mínimo</label>
-                  <input
-                    type="number"
-                    value={stockSeguridad}
-                    onChange={(e) => setStockSeguridad(e.target.value)}
-                    className="w-full bg-black border border-[#2a2a2a] focus:border-[#f2e500] text-white p-2.5 outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="pt-4 flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShowProductModal(false)}
-                  className="spartan-btn-secondary px-4 py-2 cursor-pointer"
-                >
-                  Cancelar
-                </button>
-                <button type="submit" className="spartan-btn-primary px-5 py-2 cursor-pointer">
-                  Guardar Producto
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <CreateProductModal
+        isOpen={showProductModal}
+        onClose={() => setShowProductModal(false)}
+        onSubmit={handleCreateProduct}
+        sku={sku}
+        setSku={setSku}
+        nombre={nombre}
+        setNombre={setNombre}
+        categoriaId={categoriaId}
+        setCategoriaId={setCategoriaId}
+        precio={precio}
+        setPrecio={setPrecio}
+        stock={stock}
+        setStock={setStock}
+        stockSeguridad={stockSeguridad}
+        setStockSeguridad={setStockSeguridad}
+        categorias={categorias}
+      />
 
       {/* Admin: Modal Crear Categoría */}
-      {showCatModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-sm bg-[#0D0D0D] border border-[#1A1A1A] p-6 shadow-2xl relative modal-enter">
-            <button
-              onClick={() => setShowCatModal(false)}
-              className="absolute top-4 right-4 text-[#737373] hover:text-white cursor-pointer"
-            >
-              <X className="h-5 w-5" />
-            </button>
-            <h3 className="font-['Anybody'] text-xl font-bold text-white uppercase tracking-tight mb-4 flex items-center gap-2">
-              <Layers className="h-5 w-5 text-[#f2e500]" />
-              <span>Nueva Categoría</span>
-            </h3>
-
-            <form onSubmit={handleCreateCategoria} className="space-y-4 font-['JetBrains_Mono'] text-xs">
-              <div>
-                <label className="block text-[#ccc7ab] mb-1 uppercase">Nombre de Categoría *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="EJ. BARRAS & SNACKS"
-                  value={nuevaCatNombre}
-                  onChange={(e) => setNuevaCatNombre(e.target.value)}
-                  className="w-full bg-black border border-[#2a2a2a] focus:border-[#f2e500] text-white p-2.5 outline-none uppercase"
-                />
-              </div>
-
-              <div className="pt-4 flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShowCatModal(false)}
-                  className="spartan-btn-secondary px-4 py-2 cursor-pointer"
-                >
-                  Cancelar
-                </button>
-                <button type="submit" className="spartan-btn-primary px-5 py-2 cursor-pointer">
-                  Crear Categoría
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <CreateCategoryModal
+        isOpen={showCatModal}
+        onClose={() => setShowCatModal(false)}
+        onSubmit={handleCreateCategoria}
+        nombre={nuevaCatNombre}
+        setNombre={setNuevaCatNombre}
+      />
     </div>
   );
 };

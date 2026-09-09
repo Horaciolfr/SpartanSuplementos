@@ -6,6 +6,9 @@ import type { Producto, Categoria } from '../types';
 import { getProductImage, storeLogo } from '../utils/productImages';
 import heroCinematic from '../assets/hero_cinematic.jpg';
 import { ProductCard } from '../components/ProductCard';
+import { CommunitySection } from '../components/CommunitySection';
+import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 import {
   Search,
   ArrowRight,
@@ -72,21 +75,13 @@ export const Inicio: React.FC = () => {
         className="w-full border-b border-[#1A1A1A] bg-[#0c0c0c]/85 backdrop-blur-xl sticky top-0 z-50 transition-all duration-300 shadow-2xl"
         id="main-nav"
       >
-        <div className="max-w-[1360px] mx-auto px-6 h-20 flex justify-between items-center">
-          <Link to="/" className="flex items-center gap-3 group">
+        <div className="max-w-[1360px] mx-auto px-6 h-24 flex justify-between items-center">
+          <Link to="/" className="flex items-center group py-2">
             <img
               src={storeLogo}
               alt="Spartan Suplementos Bolivia"
-              className="h-12 w-auto object-contain group-hover:scale-105 transition-transform duration-300"
+              className="h-14 sm:h-16 md:h-20 w-auto object-contain group-hover:scale-105 transition-transform duration-300 drop-shadow-md"
             />
-            <div className="hidden sm:block">
-              <span className="font-['Anybody'] text-xl text-[#f2e500] italic font-black uppercase tracking-tighter block leading-none">
-                SPARTAN
-              </span>
-              <span className="text-[9px] font-['JetBrains_Mono'] tracking-widest text-[#ccc7ab] uppercase block">
-                Suplementos Bolivia
-              </span>
-            </div>
           </Link>
 
           <div className="hidden md:flex items-center gap-8 text-xs font-['JetBrains_Mono'] uppercase tracking-wider">
@@ -95,6 +90,9 @@ export const Inicio: React.FC = () => {
             </a>
             <a href="#catalogo" className="text-[#ccc7ab] hover:text-[#f2e500] transition-colors">
               Catálogo Élite
+            </a>
+            <a href="#rutinas" className="text-[#ccc7ab] hover:text-[#f2e500] transition-colors">
+              Comunidad & Rutinas
             </a>
             <a href="#historia" className="text-[#ccc7ab] hover:text-[#f2e500] transition-colors">
               Legado
@@ -105,7 +103,7 @@ export const Inicio: React.FC = () => {
                 className="text-[#f2e500] hover:text-white transition-colors flex items-center gap-1.5"
               >
                 <Layers className="h-3.5 w-3.5" />
-                <span>Gestión ERP</span>
+                <span>Administración</span>
               </Link>
             )}
             {(role === 'CAJERO' || role === 'ADMINISTRADOR') && (
@@ -152,74 +150,75 @@ export const Inicio: React.FC = () => {
                 className="spartan-btn-primary px-6 py-2.5 text-xs flex items-center gap-2 cursor-pointer shadow-lg"
               >
                 <LogIn className="h-3.5 w-3.5 stroke-[3]" />
-                <span>Acceso ERP</span>
+                <span>Acceso Personal</span>
               </Link>
             )}
           </div>
         </div>
       </nav>
 
-      {/* Hero Section with Cinematic Background & Atmospheric Glow */}
-      <section className="relative min-h-[90vh] flex items-center pt-16 pb-24 overflow-hidden border-b border-[#1A1A1A] bg-spartan-radial">
+      {/* Hero Section */}
+      <section className="relative min-h-[92vh] flex items-center justify-center pt-24 pb-16 overflow-hidden">
+        {/* Cinematic Hero Background */}
         <div className="absolute inset-0 z-0">
           <img
             src={heroCinematic}
-            alt="Spartan Athletics Athlete"
-            className="w-full h-full object-cover object-center opacity-45 mix-blend-luminosity scale-105 hover:scale-100 transition-transform duration-1000 ease-out"
+            alt="Spartan Suplementos Élite"
+            className="w-full h-full object-cover object-center opacity-40 scale-105 animate-pulse duration-[10000ms]"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#080808] via-[#080808]/85 to-transparent z-10" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#080808] via-transparent to-transparent z-10" />
-          <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-[#f2e500]/10 rounded-full blur-3xl pointer-events-none animate-pulse-glow" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#080808] via-[#080808]/70 to-transparent" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-[#080808]/60 to-[#080808]" />
         </div>
 
-        <div className="max-w-[1360px] mx-auto px-6 relative z-20 w-full">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-black/80 border border-[#f2e500]/50 text-[#f2e500] font-['JetBrains_Mono'] text-xs uppercase tracking-widest mb-8 backdrop-blur-md shadow-md">
-              <Zap className="h-3.5 w-3.5 text-[#f2e500]" />
-              <span>Estándar Nutricional de Grado Élite — Bolivia 2026</span>
-            </div>
+        <div className="relative z-10 max-w-[1360px] mx-auto px-6 w-full text-center sm:text-left flex flex-col items-center sm:items-start">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-black/80 border border-[#f2e500]/40 text-[#f2e500] font-['JetBrains_Mono'] text-xs uppercase tracking-widest mb-6 backdrop-blur-md">
+            <Sparkles className="h-3.5 w-3.5" />
+            <span>Nutrición Deportiva Certificada — Bolivia 2026</span>
+          </div>
 
-            <h1 className="font-['Anybody'] text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-white uppercase font-black mb-6 leading-none tracking-tight">
-              DESPIERTA TU <br />
-              <span className="text-[#f2e500] italic">PODER ESPARTANO</span>
-            </h1>
+          <h1 className="font-['Anybody'] text-5xl sm:text-7xl lg:text-8xl font-black uppercase text-white tracking-tight leading-[0.95] max-w-4xl mb-6">
+            FORJA TU <br />
+            <span className="text-[#f2e500] italic">VERSIÓN ÉLITE</span>
+          </h1>
 
-            <p className="font-['Hanken_Grotesk'] text-lg md:text-xl text-[#ccc7ab] mb-10 max-w-2xl leading-relaxed">
-              Suplementación con pureza garantizada, trazabilidad atómica en Kárdex físico y formulaciones diseñadas para atletas de alto rendimiento.
-            </p>
+          <p className="font-['Hanken_Grotesk'] text-base sm:text-lg text-[#ccc7ab] max-w-xl mb-10 leading-relaxed font-light">
+            Nutrición deportiva de máxima pureza, marcas internacionales certificadas y stock inmediato para atletas de alto rendimiento.
+          </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 mb-14">
-              <a
-                href="#catalogo"
-                className="spartan-btn-primary px-8 py-4 text-xs flex items-center justify-center gap-2 cursor-pointer shadow-xl text-center"
-              >
-                <span>Explorar Catálogo Premium</span>
-                <ArrowRight className="h-4 w-4 stroke-[3]" />
-              </a>
-              <a
-                href="#historia"
-                className="inline-flex items-center justify-center border border-[#333] bg-black/60 backdrop-blur-md text-white font-['JetBrains_Mono'] text-xs uppercase font-bold px-8 py-4 hover:border-[#f2e500] hover:text-[#f2e500] transition-colors text-center"
-              >
-                Filosofía de la Arena
-              </a>
-            </div>
+          <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+            <a
+              href="#catalogo"
+              className="spartan-btn-primary w-full sm:w-auto px-8 py-4 text-xs font-black uppercase flex items-center justify-center gap-3 shadow-2xl group cursor-pointer"
+            >
+              <span>Explorar Catálogo ({productos.length})</span>
+              <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform stroke-[3]" />
+            </a>
 
-            {/* Quick Metrics Bar */}
-            <div className="grid grid-cols-3 gap-6 pt-8 border-t border-[#1A1A1A] max-w-xl">
+            <a
+              href="#historia"
+              className="spartan-btn-secondary w-full sm:w-auto px-8 py-4 text-xs font-bold uppercase flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <span>Nuestra Filosofía</span>
+            </a>
+          </div>
+
+          {/* Quick Metrics Bar */}
+          <div className="mt-16 pt-8 border-t border-[#1A1A1A]/80 w-full max-w-2xl">
+            <div className="grid grid-cols-3 gap-6 text-center sm:text-left">
               <div>
                 <span className="block font-['Anybody'] text-2xl sm:text-3xl font-black text-white">
                   100%
                 </span>
                 <span className="font-['JetBrains_Mono'] text-[10px] uppercase text-[#737373] tracking-wider">
-                  Pureza en Origen
+                  Garantía Original
                 </span>
               </div>
               <div>
                 <span className="block font-['Anybody'] text-2xl sm:text-3xl font-black text-[#f2e500]">
-                  ACID
+                  198+
                 </span>
                 <span className="font-['JetBrains_Mono'] text-[10px] uppercase text-[#737373] tracking-wider">
-                  Kárdex Serializado
+                  Suplementos en Stock
                 </span>
               </div>
               <div>
@@ -243,14 +242,14 @@ export const Inicio: React.FC = () => {
             <div className="flex items-center gap-3 mb-2">
               <ShieldCheck className="h-5 w-5 text-[#f2e500]" />
               <span className="font-['JetBrains_Mono'] text-xs font-bold text-[#f2e500] uppercase tracking-wider">
-                Control Transaccional ACID
+                Disponibilidad Garantizada
               </span>
             </div>
             <h3 className="font-['Anybody'] text-xl text-white uppercase font-black mb-1">
-              Bloqueo Pesimista en Tiempo Real
+              Stock Real en Tiempo Real
             </h3>
             <p className="font-['Hanken_Grotesk'] text-xs text-[#ccc7ab] leading-relaxed">
-              Cada venta ejecutada en caja valida saldo atómico con SELECT FOR UPDATE en PostgreSQL, imposibilitando quiebres o sobreventa de stock.
+              Cada suplemento que ves en nuestro catálogo cuenta con inventario físico confirmado en sucursal, asegurando entrega y despacho inmediato sin demoras.
             </p>
           </div>
 
@@ -262,10 +261,10 @@ export const Inicio: React.FC = () => {
               </span>
             </div>
             <h3 className="font-['Anybody'] text-xl text-white uppercase font-black mb-1">
-              Catálogo Auténtico
+              Catálogo 100% Original
             </h3>
             <p className="font-['Hanken_Grotesk'] text-xs text-[#ccc7ab] leading-relaxed">
-              Marcas internacionales líderes (ADN, Dragon Pharma, Evogen, MuscleTech, Nutrex) con lotes importados y vigentes.
+              Marcas internacionales líderes (ADN, Dragon Pharma, Evogen, MuscleTech, Nutrex) con lotes certificados y sellos de seguridad vigentes.
             </p>
           </div>
 
@@ -277,10 +276,10 @@ export const Inicio: React.FC = () => {
               </span>
             </div>
             <h3 className="font-['Anybody'] text-xl text-white uppercase font-black mb-1">
-              Despacho Inmediato
+              Atención y Despacho Ágil
             </h3>
             <p className="font-['Hanken_Grotesk'] text-xs text-[#ccc7ab] leading-relaxed">
-              Impresión instantánea de comprobante térmico con certificación digital y trazabilidad directa a Kárdex.
+              Emisión instantánea de comprobante de compra con código QR y detalle garantizado del producto.
             </p>
           </div>
         </div>
@@ -418,108 +417,115 @@ export const Inicio: React.FC = () => {
         )}
       </section>
 
-      {/* Product Detail Modal with Emil Kowalski modal-enter */}
-      {selectedProductModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-md">
-          <div className="w-full max-w-2xl bg-[#0D0D0D] border border-[#1A1A1A] shadow-2xl relative overflow-hidden flex flex-col md:flex-row modal-enter">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-[#f2e500] z-20" />
-            <button
-              onClick={() => setSelectedProductModal(null)}
-              className="absolute top-4 right-4 z-30 p-2 text-[#737373] hover:text-white transition-colors cursor-pointer"
+      {/* Product Detail Modal with Framer Motion */}
+      <AnimatePresence>
+        {selectedProductModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ duration: 0.28, ease: 'easeOut' }}
+              className="w-full max-w-2xl bg-[#0D0D0D] border border-[#1A1A1A] shadow-2xl relative overflow-hidden flex flex-col md:flex-row"
             >
-              <X className="h-5 w-5" />
-            </button>
+              <div className="absolute top-0 left-0 right-0 h-1 bg-[#f2e500] z-20" />
+              <button
+                onClick={() => setSelectedProductModal(null)}
+                className="absolute top-4 right-4 z-30 p-2 text-[#737373] hover:text-white transition-colors cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
 
-            {/* Modal Image */}
-            <div className="md:w-1/2 aspect-square md:aspect-auto bg-black relative overflow-hidden flex items-center justify-center p-6">
-              <img
-                src={getProductImage(
-                  selectedProductModal.codigo_sku,
-                  selectedProductModal.categoria?.nombre_categoria,
-                  selectedProductModal.imagen_url
-                )}
-                alt={selectedProductModal.nombre_producto}
-                className="max-h-[380px] w-auto object-contain drop-shadow-2xl"
-              />
-            </div>
+              {/* Modal Image */}
+              <div className="md:w-1/2 aspect-square md:aspect-auto bg-black relative overflow-hidden flex items-center justify-center p-6">
+                <img
+                  src={getProductImage(
+                    selectedProductModal.codigo_sku,
+                    selectedProductModal.categoria?.nombre_categoria,
+                    selectedProductModal.imagen_url
+                  )}
+                  alt={selectedProductModal.nombre_producto}
+                  className="max-h-[380px] w-auto object-contain drop-shadow-2xl"
+                />
+              </div>
 
-            {/* Modal Details */}
-            <div className="md:w-1/2 p-6 flex flex-col justify-between">
-              <div>
-                <span className="font-['JetBrains_Mono'] text-xs font-bold text-[#f2e500] uppercase tracking-wider block mb-1">
-                  [{selectedProductModal.codigo_sku}]
-                </span>
-                <h3 className="font-['Anybody'] text-2xl font-bold text-white uppercase tracking-tight mb-2">
-                  {selectedProductModal.nombre_producto}
-                </h3>
-                <p className="font-['JetBrains_Mono'] text-xs text-[#ccc7ab] uppercase mb-4">
-                  Categoría: {selectedProductModal.categoria?.nombre_categoria || 'Suplementos'}
-                </p>
+              {/* Modal Details */}
+              <div className="md:w-1/2 p-6 flex flex-col justify-between">
+                <div>
+                  <span className="font-['JetBrains_Mono'] text-xs font-bold text-[#f2e500] uppercase tracking-wider block mb-1">
+                    [{selectedProductModal.codigo_sku}]
+                  </span>
+                  <h3 className="font-['Anybody'] text-2xl font-bold text-white uppercase tracking-tight mb-2">
+                    {selectedProductModal.nombre_producto}
+                  </h3>
+                  <span className="inline-block px-2.5 py-1 bg-[#1A1A1A] text-[#ccc7ab] font-['JetBrains_Mono'] text-[10px] uppercase tracking-wider mb-4 border border-[#2a2a2a]">
+                    {selectedProductModal.categoria?.nombre_categoria || 'GENERAL'}
+                  </span>
 
-                {/* Technical / Nutritional Description */}
-                {selectedProductModal.descripcion && (
-                  <div className="mb-4 bg-black/60 border border-[#2a2a2a] p-3">
-                    <span className="text-[10px] font-['JetBrains_Mono'] text-[#f2e500] uppercase block mb-1 font-bold">
-                      Ficha Técnica & Beneficios:
-                    </span>
-                    <p className="text-xs text-[#e2e2e2] leading-relaxed">
+                  {selectedProductModal.descripcion && (
+                    <p className="text-xs text-[#ccc7ab] font-['Hanken_Grotesk'] leading-relaxed mb-4 bg-[#141414] p-3 border border-[#222]">
                       {selectedProductModal.descripcion}
                     </p>
-                  </div>
-                )}
-
-                <div className="space-y-2 text-xs font-['Hanken_Grotesk'] text-[#ccc7ab] mb-6 border-y border-[#1A1A1A] py-3">
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="h-4 w-4 text-[#f2e500]" />
-                    <span>Control de stock serializado bajo PostgreSQL ACID.</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Award className="h-4 w-4 text-[#f2e500]" />
-                    <span>Certificación de pureza internacional.</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-emerald-400" />
-                    <span>Disponible para despacho inmediato en tienda.</span>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between items-baseline mb-4">
-                  <span className="font-['JetBrains_Mono'] text-xs text-[#737373] uppercase">
-                    Precio Oficial:
-                  </span>
-                  <span className="font-['JetBrains_Mono'] text-3xl font-black text-[#f2e500]">
-                    Bs. {Number(selectedProductModal.precio_unitario).toFixed(2)}
-                  </span>
-                </div>
-
-                <div className="flex gap-3">
-                  {(role === 'CAJERO' || role === 'ADMINISTRADOR') ? (
-                    <button
-                      onClick={() => navigate('/pos')}
-                      className="w-full spartan-btn-primary py-3 text-xs flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      <ShoppingCart className="h-4 w-4 stroke-[3]" />
-                      <span>Ir al Punto de Venta</span>
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => {
-                        alert('Para adquirir este producto, acércate a cualquiera de nuestras sucursales Spartan Bolivia o inicia sesión como usuario registrado.');
-                        setSelectedProductModal(null);
-                      }}
-                      className="w-full spartan-btn-primary py-3 text-xs flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      <span>Consultar en Sucursal</span>
-                    </button>
                   )}
+
+                  <div className="space-y-2 text-xs font-['Hanken_Grotesk'] text-[#ccc7ab] mb-6 border-y border-[#1A1A1A] py-3">
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck className="h-4 w-4 text-[#f2e500]" />
+                      <span>Stock físico verificado y disponible en tienda.</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Award className="h-4 w-4 text-[#f2e500]" />
+                      <span>Certificación de pureza internacional.</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Check className="h-4 w-4 text-emerald-400" />
+                      <span>Disponible para despacho inmediato en tienda.</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex justify-between items-baseline mb-4">
+                    <span className="font-['JetBrains_Mono'] text-xs text-[#737373] uppercase">
+                      Precio Oficial:
+                    </span>
+                    <span className="font-['JetBrains_Mono'] text-3xl font-black text-[#f2e500]">
+                      Bs. {Number(selectedProductModal.precio_unitario).toFixed(2)}
+                    </span>
+                  </div>
+
+                  <div className="flex gap-3">
+                    {(role === 'CAJERO' || role === 'ADMINISTRADOR') ? (
+                      <motion.button
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => navigate('/pos')}
+                        className="w-full spartan-btn-primary py-3 text-xs flex items-center justify-center gap-2 cursor-pointer"
+                      >
+                        <ShoppingCart className="h-4 w-4 stroke-[3]" />
+                        <span>Ir al Punto de Venta</span>
+                      </motion.button>
+                    ) : (
+                      <motion.button
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => {
+                          toast.info('Para adquirir este suplemento, acércate a cualquiera de nuestras sucursales Spartan o inicia sesión.');
+                          setSelectedProductModal(null);
+                        }}
+                        className="w-full spartan-btn-primary py-3 text-xs flex items-center justify-center gap-2 cursor-pointer"
+                      >
+                        <span>Consultar en Sucursal</span>
+                      </motion.button>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
+
+      {/* Community, Motivation & Routine Philosophy Section */}
+      <CommunitySection />
 
       {/* Historia & Legacy Section with Enhanced Grid */}
       <section className="py-24 bg-[#0a0a0a] border-b border-[#1A1A1A]" id="historia">
@@ -548,7 +554,7 @@ export const Inicio: React.FC = () => {
                   Spartan Suplementos nació con la convicción de transformar el panorama de la nutrición deportiva en Bolivia, desterrando productos dudosos y estableciendo un estándar inflexible de pureza y eficacia.
                 </p>
                 <p>
-                  Inspirados en la templanza espartana, cada producto que distribuimos está respaldado por trazabilidad física auditada en Kárdex, asegurando que cada gramo de proteína, creatina o pre-entreno entregue la máxima biodisponibilidad.
+                  Inspirados en la disciplina espartana, cada producto que distribuimos cuenta con certificación original de fábrica y sellos de seguridad intactos, asegurando la máxima eficacia y pureza nutricional.
                 </p>
                 <div className="border-l-2 border-[#f2e500] pl-6 py-2 italic text-white text-lg font-['Anybody'] bg-black/40 mt-6">
                   "No buscamos atajos. Construimos atletas que desafían cualquier límite."
@@ -586,10 +592,10 @@ export const Inicio: React.FC = () => {
                   Asesoría
                 </span>
                 <h3 className="font-['Anybody'] text-2xl text-white font-bold mb-4 uppercase">
-                  Tecnología & Kárdex
+                  Confianza y Garantía
                 </h3>
                 <p className="font-['Hanken_Grotesk'] text-[#ccc7ab] text-sm leading-relaxed">
-                  Cada venta y abastecimiento es registrado con integridad transaccional ACID en PostgreSQL, respaldando la trazabilidad de inventario más confiable de Bolivia.
+                  Gestionamos nuestro catálogo con los más altos estándares de control y autenticidad, respaldando la experiencia de compra deportiva más confiable de Bolivia.
                 </p>
               </div>
 
@@ -608,7 +614,7 @@ export const Inicio: React.FC = () => {
           <div className="font-['Anybody'] text-2xl text-[#f2e500] italic font-black uppercase">
             SPARTAN{' '}
             <span className="text-[#ccc7ab] text-sm not-italic font-normal block md:inline md:ml-2">
-              Bolivia — Nutrición de Grado Élite & ERP
+              Bolivia — Nutrición Deportiva de Grado Élite
             </span>
           </div>
           <div className="flex gap-6 text-xs font-['JetBrains_Mono'] text-[#737373] uppercase">
@@ -616,6 +622,10 @@ export const Inicio: React.FC = () => {
             <span>•</span>
             <a href="#catalogo" className="hover:text-[#f2e500] transition-colors">
               Catálogo
+            </a>
+            <span>•</span>
+            <a href="#rutinas" className="hover:text-[#f2e500] transition-colors">
+              Comunidad & Rutinas
             </a>
             <span>•</span>
             <Link to="/login" className="hover:text-[#f2e500] transition-colors">

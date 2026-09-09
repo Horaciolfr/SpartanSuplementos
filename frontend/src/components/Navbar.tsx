@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ShoppingCart, Package, LogOut, User as UserIcon, Home } from 'lucide-react';
+import { ShoppingCart, Package, LogOut, User as UserIcon, Home, Flame } from 'lucide-react';
 import { storeLogo } from '../utils/productImages';
 
 export const Navbar: React.FC = () => {
@@ -23,22 +23,14 @@ export const Navbar: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-[#1A1A1A] bg-[#131313]/95 backdrop-blur-md">
-      <div className="mx-auto flex h-20 max-w-[1280px] items-center justify-between px-6">
+      <div className="mx-auto flex h-24 max-w-[1280px] items-center justify-between px-6">
         {/* Logo / Brand */}
-        <Link to="/" className="flex items-center gap-3 group">
+        <Link to="/" className="flex items-center group py-2">
           <img
             src={storeLogo}
             alt="Spartan Suplementos Bolivia"
-            className="h-12 w-auto object-contain group-hover:scale-105 transition-transform duration-300"
+            className="h-14 sm:h-16 md:h-20 w-auto object-contain group-hover:scale-105 transition-transform duration-300 drop-shadow-md"
           />
-          <div className="hidden sm:block">
-            <span className="font-['Anybody'] text-xl text-[#f2e500] italic font-black uppercase tracking-tighter block leading-none">
-              SPARTAN
-            </span>
-            <span className="text-[9px] font-['JetBrains_Mono'] tracking-widest text-[#ccc7ab] uppercase block">
-              Suplementos Bolivia
-            </span>
-          </div>
         </Link>
 
         {/* Navigation Links */}
@@ -66,6 +58,14 @@ export const Navbar: React.FC = () => {
             <Package className="h-3.5 w-3.5" />
             <span>Catálogo</span>
           </Link>
+
+          <a
+            href="/#rutinas"
+            className="flex items-center gap-1.5 px-3 py-2 text-[#ccc7ab] hover:text-[#f2e500] transition-colors"
+          >
+            <Flame className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Comunidad</span>
+          </a>
 
           {(role === 'CAJERO' || role === 'ADMINISTRADOR') && (
             <Link
