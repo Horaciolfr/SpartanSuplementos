@@ -1,10 +1,7 @@
 import React from 'react';
 import type { Producto } from '../types';
 import { getProductImage } from '../utils/productImages';
-import { Eye, ShoppingCart } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { Eye, ArrowUpRight } from 'lucide-react';
 
 interface ProductCardProps {
   producto: Producto;
@@ -17,9 +14,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   onOpenModal,
   animationDelay = 0,
 }) => {
-  const { role } = useAuth();
-  const navigate = useNavigate();
-
   const isOutOfStock = producto.stock_actual <= 0;
   const isLowStock = producto.stock_actual <= producto.stock_seguridad;
   const productImg = getProductImage(
@@ -28,161 +22,104 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     producto.imagen_url
   );
 
-  // Extraer marca sugerida del nombre si es posible (e.g. ADN, Dragon Pharma, Evogen, MuscleTech, Nutrex, etc.)
-  const extractBrand = (name: string) => {
-    const brands = [
-      'Dragon Pharma',
-      'MuscleTech',
-      'Insane Labz',
-      'Evogen',
-      'Nutrex',
-      'Finaflex',
-      'Level Pro',
-      'Ultimate Nutrition',
-      'Orgain',
-      'RCSS',
-      'Syntrax',
-      'ADN',
-    ];
-    for (const b of brands) {
-      if (name.toLowerCase().includes(b.toLowerCase())) return b.toUpperCase();
-    }
-    return producto.categoria?.nombre_categoria || 'SPARTAN';
+  const openProduct = () => {
+    if (!isOutOfStock) onOpenModal(producto);
   };
 
-  const brandTag = extractBrand(producto.nombre_producto);
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
+    if (isOutOfStock || (event.key !== 'Enter' && event.key !== ' ')) return;
+    event.preventDefault();
+    openProduct();
+  };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{
-        duration: 0.4,
-        delay: Math.min(animationDelay / 1000, 0.3),
-        ease: [0.16, 1, 0.3, 1],
-      }}
-      whileHover={{ y: -6, transition: { duration: 0.25, ease: 'easeOut' } }}
-      className="group relative bg-gradient-to-b from-[#121212] via-[#0d0d0d] to-[#080808] border border-[#222222] hover:border-[#f2e500]/70 flex flex-col justify-between overflow-hidden shadow-xl hover:shadow-2xl hover:shadow-black/90 rounded-sm"
+    <article
+      onClick={openProduct}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={isOutOfStock ? -1 : 0}
+      aria-disabled={isOutOfStock}
+      aria-label={`${producto.nombre_producto}. ${isOutOfStock ? 'Producto agotado' : 'Abrir ficha del producto'}`}
+      style={{ animationDelay: `${animationDelay}ms` }}
+      className={`stagger-card group relative flex flex-col overflow-hidden bg-[#111111] border border-white/[0.07] hover:border-white/[0.16] rounded-xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e8dc00] ${
+        isOutOfStock
+          ? 'opacity-50 cursor-not-allowed border-white/5'
+          : 'cursor-pointer hover:-translate-y-1'
+      }`}
     >
-      {/* Top Gold Accent Line */}
-      <div className="absolute top-0 left-0 right-0 h-[2px] bg-transparent group-hover:bg-[#f2e500] transition-colors duration-300 z-30" />
+      {/* Accent Line on Hover */}
+      {!isOutOfStock && (
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-[#e8dc00] scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left z-20" />
+      )}
 
-      {/* Product Image Stage */}
-      <div
-        onClick={() => onOpenModal(producto)}
-        className="relative aspect-square w-full bg-gradient-to-b from-[#181818] to-[#0c0c0c] flex items-center justify-center p-5 overflow-hidden cursor-pointer img-vignette"
-      >
-        {/* Subtle Radial Glow on Bottle */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(242,229,0,0.09)_0%,transparent_70%)] opacity-40 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-
-        {/* Brand Tag Pill */}
-        <div className="absolute top-3 left-3 z-20">
-          <span className="px-2 py-0.5 bg-black/80 backdrop-blur-md border border-[#333] text-[9px] font-['JetBrains_Mono'] font-bold text-[#f2e500] tracking-wider uppercase">
-            {brandTag}
-          </span>
-        </div>
-
-        {/* Stock Status Indicator Pill */}
-        <div className="absolute top-3 right-3 z-20">
-          <span
-            className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-[9px] font-['JetBrains_Mono'] font-bold uppercase tracking-wider backdrop-blur-md border ${
-              isOutOfStock
-                ? 'bg-red-950/80 text-red-400 border-red-500/40'
-                : isLowStock
-                ? 'bg-amber-950/80 text-[#f2e500] border-[#f2e500]/40'
-                : 'bg-black/80 text-emerald-400 border-emerald-500/30'
-            }`}
-          >
-            <span
-              className={`h-1.5 w-1.5 rounded-full ${
-                isOutOfStock ? 'bg-red-400' : isLowStock ? 'bg-[#f2e500]' : 'bg-emerald-400 animate-pulse'
-              }`}
-            />
-            {isOutOfStock ? 'Agotado' : `${producto.stock_actual} disponibles`}
-          </span>
-        </div>
-
-        {/* High-res Product Photo */}
-        <motion.img
+      {/* Image Container */}
+      <div className="relative aspect-square w-full bg-[#090909] flex items-center justify-center p-5 overflow-hidden rounded-t-xl">
+        <img
           src={productImg}
           alt={producto.nombre_producto}
           loading="lazy"
-          whileHover={{ scale: 1.06 }}
-          transition={{ duration: 0.35, ease: 'easeOut' }}
-          className="max-h-full max-w-full object-contain drop-shadow-[0_8px_16px_rgba(0,0,0,0.8)] z-10"
+          decoding="async"
+          width="480"
+          height="480"
+          className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300 ease-out z-0"
         />
 
-        {/* Hover Quick View Trigger */}
-        <div className="absolute inset-0 z-20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/50 backdrop-blur-[2px]">
-          <span className="flex items-center gap-2 bg-[#f2e500] text-black font-['JetBrains_Mono'] text-xs font-black uppercase px-4 py-2 shadow-2xl interactive-press">
-            <Eye className="h-3.5 w-3.5 stroke-[3]" />
-            <span>Ficha Técnica</span>
+        {/* Semantic Stock Status Tag */}
+        <div
+          className={`absolute top-3 right-3 z-20 flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-medium tracking-wide rounded-full backdrop-blur-md border ${
+            isOutOfStock
+              ? 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+              : isLowStock
+              ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+              : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+          }`}
+        >
+          <span
+            className={`w-1.5 h-1.5 rounded-full ${
+              isOutOfStock
+                ? 'bg-rose-400'
+                : isLowStock
+                ? 'bg-amber-400'
+                : 'bg-emerald-400'
+            }`}
+          />
+          <span>{isOutOfStock ? 'Agotado' : isLowStock ? 'Pocas unidades' : 'En stock'}</span>
+        </div>
+
+        {/* Hover Action */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/50 backdrop-blur-[2px] z-20">
+          <span className="flex items-center gap-1.5 bg-[#e8dc00] text-black text-xs font-semibold px-4 py-2 rounded-lg shadow-lg translate-y-2 group-hover:translate-y-0 transition-transform duration-200 ease-out">
+            <Eye className="h-4 w-4" />
+            <span>Ver Ficha</span>
+            <ArrowUpRight className="h-3.5 w-3.5" />
           </span>
         </div>
       </div>
 
-      {/* Product Information Body */}
-      <div className="p-5 flex-1 flex flex-col justify-between bg-[#0b0b0b]/90 border-t border-[#181818]">
+      {/* Info Section */}
+      <div className="p-4 flex-1 flex flex-col justify-between bg-[#111111]">
         <div>
-          <div className="flex items-center justify-between gap-2 mb-1.5">
-            <span className="font-['JetBrains_Mono'] text-[10px] text-[#f2e500] font-bold uppercase tracking-wider">
-              [{producto.codigo_sku}]
-            </span>
-            <span className="font-['JetBrains_Mono'] text-[9px] text-[#737373] uppercase truncate max-w-[140px]">
-              {producto.categoria?.nombre_categoria || 'GENERAL'}
-            </span>
+          <div className="flex items-center justify-between text-[11px] text-[#6f6f6f] mb-1 font-mono">
+            <span>{producto.categoria?.nombre_categoria || 'Suplementos'}</span>
+            <span className="text-[10px] text-[#a3a3a3] opacity-75">{producto.codigo_sku}</span>
           </div>
-
-          <h3
-            onClick={() => onOpenModal(producto)}
-            className="font-['Anybody'] text-sm sm:text-base font-bold text-white uppercase tracking-tight group-hover:text-[#f2e500] transition-colors line-clamp-2 leading-snug cursor-pointer mb-2"
-          >
+          <h3 className="font-['Inter',sans-serif] text-sm font-semibold text-[#f5f5f5] line-clamp-2 leading-snug group-hover:text-[#e8dc00] transition-colors duration-150">
             {producto.nombre_producto}
           </h3>
-
-          {producto.descripcion && (
-            <p className="text-[11px] font-['Hanken_Grotesk'] text-[#8a8a8a] line-clamp-1 mb-2">
-              {producto.descripcion}
-            </p>
-          )}
         </div>
 
-        {/* Price Tag & Action */}
-        <div className="pt-3 border-t border-[#181818] mt-2 flex items-center justify-between gap-3">
+        <div className="pt-3 mt-3 border-t border-white/[0.06] flex items-center justify-between">
           <div>
-            <span className="text-[8px] font-['JetBrains_Mono'] uppercase tracking-widest text-[#737373] block">
-              Precio Oficial
+            <span className="block text-[10px] text-[#6f6f6f] uppercase tracking-wider font-medium">Precio</span>
+            <span className="text-base font-bold text-white tabular-nums">
+              Bs. {Number(producto.precio_unitario).toFixed(2)}
             </span>
-            <div className="flex items-baseline gap-1">
-              <span className="font-['JetBrains_Mono'] text-[11px] text-[#f2e500] font-bold">Bs.</span>
-              <span className="font-['JetBrains_Mono'] text-xl font-black text-white group-hover:text-[#f2e500] transition-colors">
-                {Number(producto.precio_unitario).toFixed(2)}
-              </span>
-            </div>
           </div>
-
-          {role === 'CAJERO' || role === 'ADMINISTRADOR' ? (
-            <motion.button
-              whileTap={{ scale: 0.94 }}
-              onClick={() => navigate('/pos')}
-              className="spartan-btn-secondary px-3.5 py-2 text-[11px] flex items-center gap-1.5 cursor-pointer shadow-md"
-              title="Vender en Punto de Venta"
-            >
-              <ShoppingCart className="h-3 w-3" />
-              <span className="hidden sm:inline">Vender</span>
-            </motion.button>
-          ) : (
-            <motion.button
-              whileTap={{ scale: 0.94 }}
-              onClick={() => onOpenModal(producto)}
-              className="spartan-btn-primary px-3.5 py-2 text-[11px] flex items-center gap-1.5 cursor-pointer shadow-md"
-            >
-              <Eye className="h-3 w-3 stroke-[3]" />
-              <span className="hidden sm:inline">Detalles</span>
-            </motion.button>
-          )}
+          <span className="text-[11px] font-medium text-[#a3a3a3] bg-white/[0.04] border border-white/[0.06] px-2.5 py-1 rounded-md">
+            Disponible
+          </span>
         </div>
       </div>
-    </motion.div>
+    </article>
   );
 };
