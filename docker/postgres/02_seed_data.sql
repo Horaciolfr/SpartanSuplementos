@@ -2,9 +2,10 @@
 -- SPARTAN SUPLEMENTOS BOLIVIA — DATOS INICIALES (SEED)
 -- ==========================================================
 
-INSERT INTO parametros.rol_sistema (id_rol, nombre_rol) VALUES (1, 'ADMINISTRADOR') ON CONFLICT (id_rol) DO NOTHING;
-INSERT INTO parametros.rol_sistema (id_rol, nombre_rol) VALUES (2, 'CAJERO') ON CONFLICT (id_rol) DO NOTHING;
-INSERT INTO parametros.rol_sistema (id_rol, nombre_rol) VALUES (3, 'CLIENTE') ON CONFLICT (id_rol) DO NOTHING;
+INSERT INTO parametros.rol_sistema (id_rol, nombre_rol) VALUES (1, 'ADMINISTRADOR') ON CONFLICT (id_rol) DO UPDATE SET nombre_rol = 'ADMINISTRADOR';
+INSERT INTO parametros.rol_sistema (id_rol, nombre_rol) VALUES (2, 'EMPLEADO') ON CONFLICT (id_rol) DO UPDATE SET nombre_rol = 'EMPLEADO';
+INSERT INTO parametros.rol_sistema (id_rol, nombre_rol) VALUES (3, 'CLIENTE') ON CONFLICT (id_rol) DO UPDATE SET nombre_rol = 'CLIENTE';
+INSERT INTO parametros.rol_sistema (id_rol, nombre_rol) VALUES (4, 'INVITADO') ON CONFLICT (id_rol) DO UPDATE SET nombre_rol = 'INVITADO';
 SELECT setval('parametros.rol_sistema_id_rol_seq', COALESCE((SELECT MAX(id_rol) FROM parametros.rol_sistema), 1));
 
 INSERT INTO parametros.tipo_documento (id_tipo_documento, sigla) VALUES (1, 'CI') ON CONFLICT (id_tipo_documento) DO NOTHING;
@@ -21,6 +22,46 @@ INSERT INTO parametros.catalogo_somatotipo (id_somatotipo, nombre_somatotipo) VA
 INSERT INTO parametros.catalogo_somatotipo (id_somatotipo, nombre_somatotipo) VALUES (2, 'MESOMORFO') ON CONFLICT (id_somatotipo) DO NOTHING;
 INSERT INTO parametros.catalogo_somatotipo (id_somatotipo, nombre_somatotipo) VALUES (3, 'ENDOMORFO') ON CONFLICT (id_somatotipo) DO NOTHING;
 SELECT setval('parametros.catalogo_somatotipo_id_somatotipo_seq', COALESCE((SELECT MAX(id_somatotipo) FROM parametros.catalogo_somatotipo), 1));
+
+INSERT INTO parametros.plan_nutricional_somatotipo (
+    id_somatotipo, nombre_plan, objetivo, distribucion_macronutrientes, pautas, comidas_sugeridas, disclaimer
+) VALUES 
+(
+    1,
+    'Plan Ectomorfo - Superávit Controlado',
+    'Superávit calórico controlado y balance glucogénico para desarrollo muscular sostenido',
+    '{"proteina_pct": 25, "carbohidratos_pct": 55, "grasas_pct": 20}'::jsonb,
+    '["Superávit calórico controlado de 300 a 500 kcal sobre el gasto total", "Priorizar hidratos de carbono complejos y alta densidad energética", "Distribuir ingesta proteica en 4 a 5 comidas diarias (1.8 a 2.2 g/kg)", "Hidratación constante mínima de 35-40 ml por kg de peso corporal"]'::jsonb,
+    '[{"comida": "Desayuno", "sugerencia": "Avena cocida con leche entera, plátano, frutos secos y proteína en polvo", "timing": "08:00"}, {"comida": "Media Mañana", "sugerencia": "Tostadas integrales con mantequilla de maní y pechuga de pavo", "timing": "11:00"}, {"comida": "Almuerzo", "sugerencia": "Pechuga de pollo con arroz jazmín, batatas asadas y ensalada con aceite de oliva", "timing": "14:00"}, {"comida": "Merienda", "sugerencia": "Yogur griego con granola, arándanos y miel", "timing": "17:30"}, {"comida": "Cena", "sugerencia": "Filete de pescado o atún con puré de patata, verduras al vapor y aguacate", "timing": "21:00"}]'::jsonb,
+    'Contenido informativo por somatotipo; no constituye consejo médico ni sustituye evaluación profesional'
+),
+(
+    2,
+    'Plan Mesomorfo - Equilibrio y Recomposición',
+    'Equilibrio metabólico y recomposición corporal con soporte proteico óptimo',
+    '{"proteina_pct": 30, "carbohidratos_pct": 45, "grasas_pct": 25}'::jsonb,
+    '["Ingesta isocalórica o ciclado moderado de hidratos según intensidad de entrenamiento", "Aporte proteico objetivo en rango de 2.0 a 2.4 g/kg de peso corporal", "Balance de grasas insaturadas para soporte hormonal y salud articular", "Timing enfocado en ventanas peri-entreno para optimizar rendimiento y síntesis"]'::jsonb,
+    '[{"comida": "Desayuno", "sugerencia": "Huevos revueltos con espinacas, avena integral con frutos rojos y té verde", "timing": "08:00"}, {"comida": "Media Mañana", "sugerencia": "Manzana verde con nueces o almendras y requesón magro", "timing": "11:00"}, {"comida": "Almuerzo", "sugerencia": "Ternera magra con patata asada, brócoli al vapor y aceite de oliva virgen", "timing": "14:00"}, {"comida": "Merienda", "sugerencia": "Tortitas de avena y claras con fruta fresca", "timing": "17:30"}, {"comida": "Cena", "sugerencia": "Pechuga de pavo a la plancha con quinoa, espárragos y ensalada mixta", "timing": "21:00"}]'::jsonb,
+    'Contenido informativo por somatotipo; no constituye consejo médico ni sustituye evaluación profesional'
+),
+(
+    3,
+    'Plan Endomorfo - Déficit Moderado y Alta Proteína',
+    'Déficit calórico moderado con alta saciedad y predominio proteico para preservar masa magra',
+    '{"proteina_pct": 40, "carbohidratos_pct": 30, "grasas_pct": 30}'::jsonb,
+    '["Déficit calórico moderado de 300 a 500 kcal priorizando saciedad y volumen de vegetales", "Aporte proteico elevado de 2.2 a 2.6 g/kg de masa libre de grasa", "Restringir carbohidratos refinados y priorizar fuentes de bajo índice glucémico y fibra", "Grasas saludables controladas procedentes de aguacate, frutos secos y aceite de oliva"]'::jsonb,
+    '[{"comida": "Desayuno", "sugerencia": "Omelette de claras con espinacas, champiñones y medio aguacate", "timing": "08:30"}, {"comida": "Media Mañana", "sugerencia": "Batido de proteína aislada (whey isolate) con semillas de chía", "timing": "11:30"}, {"comida": "Almuerzo", "sugerencia": "Pechuga de pollo a la plancha con abundante ensalada verde y porción medida de arroz integral", "timing": "14:30"}, {"comida": "Merienda", "sugerencia": "Yogur proteico desnatado con canela y un puñado de nueces", "timing": "17:30"}, {"comida": "Cena", "sugerencia": "Lomo de merluza o salmón al horno con calabacines y pimientos asados", "timing": "21:00"}]'::jsonb,
+    'Contenido informativo por somatotipo; no constituye consejo médico ni sustituye evaluación profesional'
+)
+ON CONFLICT (id_somatotipo) DO UPDATE SET
+    nombre_plan = EXCLUDED.nombre_plan,
+    objetivo = EXCLUDED.objetivo,
+    distribucion_macronutrientes = EXCLUDED.distribucion_macronutrientes,
+    pautas = EXCLUDED.pautas,
+    comidas_sugeridas = EXCLUDED.comidas_sugeridas,
+    disclaimer = EXCLUDED.disclaimer;
+SELECT setval('parametros.plan_nutricional_somatotipo_id_plan_seq', COALESCE((SELECT MAX(id_plan) FROM parametros.plan_nutricional_somatotipo), 1));
+
 
 INSERT INTO parametros.catalogo_genero (id_genero, nombre_genero) VALUES (1, 'MASCULINO') ON CONFLICT (id_genero) DO NOTHING;
 INSERT INTO parametros.catalogo_genero (id_genero, nombre_genero) VALUES (2, 'FEMENINO') ON CONFLICT (id_genero) DO NOTHING;
@@ -42,10 +83,10 @@ INSERT INTO erp.proveedor (id_proveedor, razon_social, nit) VALUES (1, 'Optimum 
 INSERT INTO erp.proveedor (id_proveedor, razon_social, nit) VALUES (2, 'Spartan Labs Distribuidora S.A.', 'NIT-99887766') ON CONFLICT (id_proveedor) DO NOTHING;
 SELECT setval('erp.proveedor_id_proveedor_seq', COALESCE((SELECT MAX(id_proveedor) FROM erp.proveedor), 1));
 
-INSERT INTO erp.usuario (id_usuario, id_rol, id_tipo_documento, id_genero, numero_documento, nombres, apellidos, email, hash_contrasena) VALUES (1, 2, 1, 1, '12345678', 'Horacio', 'Cajero', 'cajero@spartan.com', 'argon2_hashed_secret_placeholder') ON CONFLICT (id_usuario) DO NOTHING;
-INSERT INTO erp.usuario (id_usuario, id_rol, id_tipo_documento, id_genero, numero_documento, nombres, apellidos, email, hash_contrasena) VALUES (2, 1, 1, 1, '10000001', 'Admin', 'Spartan', 'admin@spartan.dev', '$2b$12$cYmof4dTcfp2sQ/QKRtFVe6D93HCyReOG4t4OpSy2dQhxLdtOhQ6.') ON CONFLICT (id_usuario) DO NOTHING;
-INSERT INTO erp.usuario (id_usuario, id_rol, id_tipo_documento, id_genero, numero_documento, nombres, apellidos, email, hash_contrasena) VALUES (3, 2, 1, 1, '10000002', 'Cajero', 'Spartan', 'cajero@spartan.dev', '$2b$12$cYmof4dTcfp2sQ/QKRtFVe6D93HCyReOG4t4OpSy2dQhxLdtOhQ6.') ON CONFLICT (id_usuario) DO NOTHING;
-INSERT INTO erp.usuario (id_usuario, id_rol, id_tipo_documento, id_genero, numero_documento, nombres, apellidos, email, hash_contrasena) VALUES (4, 3, 1, 1, '10000003', 'Cliente', 'Spartan', 'cliente@spartan.dev', '$2b$12$cYmof4dTcfp2sQ/QKRtFVe6D93HCyReOG4t4OpSy2dQhxLdtOhQ6.') ON CONFLICT (id_usuario) DO NOTHING;
+INSERT INTO erp.usuario (id_usuario, id_rol, id_tipo_documento, id_genero, numero_documento, nombres, apellidos, email, hash_contrasena) VALUES (1, 2, 1, 1, '12345678', 'Horacio', 'Cajero', 'cajero@spartan.com', '$2b$12$IFKyNUGtcbZ43VrPLbgIquUBGp9T8C.4SqnRAq.j/OR6geA.BtApm') ON CONFLICT (id_usuario) DO NOTHING;
+INSERT INTO erp.usuario (id_usuario, id_rol, id_tipo_documento, id_genero, numero_documento, nombres, apellidos, email, hash_contrasena) VALUES (2, 1, 1, 1, '10000001', 'Admin', 'Spartan', 'admin@spartan.dev', '$2b$12$IFKyNUGtcbZ43VrPLbgIquUBGp9T8C.4SqnRAq.j/OR6geA.BtApm') ON CONFLICT (id_usuario) DO NOTHING;
+INSERT INTO erp.usuario (id_usuario, id_rol, id_tipo_documento, id_genero, numero_documento, nombres, apellidos, email, hash_contrasena) VALUES (3, 2, 1, 1, '10000002', 'Cajero', 'Spartan', 'cajero@spartan.dev', '$2b$12$IFKyNUGtcbZ43VrPLbgIquUBGp9T8C.4SqnRAq.j/OR6geA.BtApm') ON CONFLICT (id_usuario) DO NOTHING;
+INSERT INTO erp.usuario (id_usuario, id_rol, id_tipo_documento, id_genero, numero_documento, nombres, apellidos, email, hash_contrasena) VALUES (4, 3, 1, 1, '10000003', 'Cliente', 'Spartan', 'cliente@spartan.dev', '$2b$12$IFKyNUGtcbZ43VrPLbgIquUBGp9T8C.4SqnRAq.j/OR6geA.BtApm') ON CONFLICT (id_usuario) DO NOTHING;
 SELECT setval('erp.usuario_id_usuario_seq', COALESCE((SELECT MAX(id_usuario) FROM erp.usuario), 1));
 
 INSERT INTO erp.producto (id_producto, id_categoria, codigo_sku, nombre_producto, precio_unitario, stock_actual, stock_seguridad, estado_activo, imagen_url, descripcion) VALUES (1, 1, 'SKU-PROT-WHEY-01', '100% Gold Standard Whey 5lb', 380.00, 4943, 50, FALSE, NULL, NULL) ON CONFLICT (id_producto) DO NOTHING;

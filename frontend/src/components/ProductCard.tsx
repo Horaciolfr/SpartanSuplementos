@@ -90,7 +90,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/50 backdrop-blur-[2px] z-20">
           <span className="flex items-center gap-1.5 bg-[#e8dc00] text-black text-xs font-semibold px-4 py-2 rounded-lg shadow-lg translate-y-2 group-hover:translate-y-0 transition-transform duration-200 ease-out">
             <Eye className="h-4 w-4" />
-            <span>Ver Ficha</span>
+            <span>Ver detalle</span>
             <ArrowUpRight className="h-3.5 w-3.5" />
           </span>
         </div>
@@ -110,13 +110,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
         <div className="pt-3 mt-3 border-t border-white/[0.06] flex items-center justify-between">
           <div>
-            <span className="block text-[10px] text-[#6f6f6f] uppercase tracking-wider font-medium">Precio</span>
+            <span className="block text-[10px] text-[#6f6f6f] uppercase tracking-wider font-medium">Precio referencial</span>
             <span className="text-base font-bold text-white tabular-nums">
               Bs. {Number(producto.precio_unitario).toFixed(2)}
             </span>
           </div>
-          <span className="text-[11px] font-medium text-[#a3a3a3] bg-white/[0.04] border border-white/[0.06] px-2.5 py-1 rounded-md">
-            Disponible
+          <span className="text-[11px] font-medium text-[#a3a3a3] bg-white/[0.04] border border-white/[0.06] px-2.5 py-1 rounded-md tabular-nums">
+            {producto.stock_actual} unid.
           </span>
         </div>
       </div>

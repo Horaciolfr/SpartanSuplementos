@@ -46,7 +46,12 @@ async def create_categoria(
 async def list_productos(
     db: AsyncSession = Depends(get_db),
 ):
-    stmt = select(Producto).options(selectinload(Producto.categoria)).order_by(Producto.id_producto)
+    stmt = (
+        select(Producto)
+        .options(selectinload(Producto.categoria))
+        .where(Producto.estado_activo == True)
+        .order_by(Producto.id_producto)
+    )
     res = await db.execute(stmt)
     return res.scalars().all()
 

@@ -9,7 +9,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-spartan_db}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-SpartanAdmin2026!}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD in .env.docker}
     ports:
       - "${POSTGRES_PORT:-5433}:5432"
     volumes:
@@ -36,17 +36,35 @@ services:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-SpartanAdmin2026!}@db:5432/${POSTGRES_DB:-spartan_db}
-      SECRET_KEY: ${SECRET_KEY:-e87b649d288d4041b31548e65813ec79f538e1245b738128362629b359f13775}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD in .env.docker}@db:5432/${POSTGRES_DB:-spartan_db}
+      SECRET_KEY: ${SECRET_KEY:?Define SECRET_KEY in .env.docker}
       ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-60}
-      ADMIN_INITIAL_PASSWORD: ${ADMIN_INITIAL_PASSWORD:-SpartanAdmin2026!}
+      ADMIN_INITIAL_PASSWORD: ${ADMIN_INITIAL_PASSWORD:?Define ADMIN_INITIAL_PASSWORD in .env.docker}
       ALGORITHM: ${ALGORITHM:-HS256}
-      ROBOFLOW_API_KEY: ${ROBOFLOW_API_KEY:-eW2FCKVBcWu130lj6GKr}
+      ROBOFLOW_API_KEY: ${ROBOFLOW_API_KEY:-}
+      IA_SERVICE_URL: ${IA_SERVICE_URL:-http://service-ia:8001}
+      IA_INTERNAL_API_KEY: ${IA_INTERNAL_API_KEY:?Define IA_INTERNAL_API_KEY in .env.docker}
+      ENVIRONMENT: production
       DB_HOST: db
       DB_PORT: 5432
       DB_USER: ${POSTGRES_USER:-postgres}
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME:-Spartan Suplementos Bolivia}
+      SMTP_TLS: ${SMTP_TLS:-True}
+      EMAIL_DEBUG_CODES: "False"
     ports:
       - "8000:8000"
+    volumes:
+      - ./app:/app/app
+      - ./backend:/app/backend
+      - ./tests:/app/tests
+      - ./data:/app/data
+      - ./artifacts:/app/artifacts
+      - ./scripts:/app/scripts
     networks:
       - spartan-network
 
@@ -62,10 +80,17 @@ services:
     environment:
       SERVICE_NAME: "Spartan Biometric IA Microservice"
       PORT: ${IA_PORT:-8001}
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-SpartanAdmin2026!}@db:5432/${POSTGRES_DB:-spartan_db}
-      ROBOFLOW_API_KEY: ${ROBOFLOW_API_KEY:-eW2FCKVBcWu130lj6GKr}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD in .env.docker}@db:5432/${POSTGRES_DB:-spartan_db}
+      ROBOFLOW_API_KEY: ${ROBOFLOW_API_KEY:-}
+      IA_INTERNAL_API_KEY: ${IA_INTERNAL_API_KEY:?Define IA_INTERNAL_API_KEY in .env.docker}
+      ENVIRONMENT: production
     ports:
-      - "${IA_PORT:-8001}:8001"
+      - "127.0.0.1:${IA_PORT:-8001}:8001"
+    volumes:
+      - ./tests:/app/tests
+      - ./data:/app/data
+      - ./artifacts:/app/artifacts
+      - ./services:/app/services
     networks:
       - spartan-network
 
@@ -78,7 +103,7 @@ services:
       context: .
       dockerfile: docker/frontend.Dockerfile
       args:
-        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+        VITE_API_URL: ${VITE_API_URL:-/api}
     restart: unless-stopped
     depends_on:
       - backend

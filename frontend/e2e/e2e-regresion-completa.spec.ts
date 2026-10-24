@@ -250,6 +250,13 @@ test.describe('Spartan Suplementos - Suite E2E de Regresión Integral (Tarea 19)
     await expect(page).toHaveURL(/\/biometria$/);
     await expect(page.getByRole('heading', { name: 'Biometría', exact: true })).toBeVisible();
 
+    // Si aparece el modal de guía de captura, cerrarlo
+    const btnCerrarGuia = page.getByRole('button', { name: /Cerrar guía/i });
+    if (await btnCerrarGuia.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await btnCerrarGuia.click();
+      await page.waitForTimeout(300);
+    }
+
     // Cargar muestra demo
     const btnDemo = page.getByRole('button', { name: 'Demo' });
     await expect(btnDemo).toBeVisible();
@@ -336,7 +343,15 @@ test.describe('Spartan Suplementos - Suite E2E de Regresión Integral (Tarea 19)
     await expect(page.getByText('MESOMORFO', { exact: true })).toBeVisible();
     await expect(page.getByText('Dragon Pharma ATP Force Creatine')).toBeVisible();
     await expect(page.getByText(/Regla: CART-4/i)).toBeVisible();
+    await expect(page.getByText(/Si el producto es de la línea creatina y tu somatotipo es mesomorfo/i)).toBeVisible();
+
+    // Abrir modal técnico y verificar sintaxis cruda
+    await page.getByRole('button', { name: /Ver sintaxis técnica/i }).first().click();
     await expect(page.getByText(/SI categoria!=INDUMENTARIA/i)).toBeVisible();
+    await page.getByRole('button', { name: 'Cerrar', exact: true }).click();
+
+    // Aserción PASO 2 (V-08): PRECISIÓN IA no debe aparecer en ninguna ruta
+    await expect(page.getByText(/PRECISIÓN IA/i)).toHaveCount(0);
   });
 
 });

@@ -20,7 +20,7 @@ test.describe('Prueba Real de Interacción de Botones y Flujos (Sin Mocks)', () 
     // 1. Iniciar sesión real
     await page.goto('/login');
     await page.locator('input#email').fill('admin@spartan.dev');
-    await page.locator('input[type="password"]').fill('SpartanAdmin2026!');
+    await page.locator('input[type="password"]').fill('123456789');
     await page.locator('button[type="submit"]').click();
 
     // Esperar redirección tras login
@@ -30,6 +30,32 @@ test.describe('Prueba Real de Interacción de Botones y Flujos (Sin Mocks)', () 
     // 2. Navegar a /biometria
     await page.goto('/biometria');
     await expect(page.getByRole('heading', { name: 'Biometría', exact: true })).toBeVisible({ timeout: 10000 });
+
+    // Verificar modal animado de recomendaciones iniciales (CaptureGuideModal) si está presente
+    const btnCerrarGuiaInicial = page.getByRole('button', { name: /Cerrar guía/i });
+    if (await btnCerrarGuiaInicial.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await expect(page.getByText(/Coloca el teléfono a 2 metros/i)).toBeVisible();
+      await btnCerrarGuiaInicial.click();
+      await page.waitForTimeout(300);
+    }
+
+    // Probar botón "Guía de Captura" para reabrir el modal, avanzar con Siguiente y cerrarlo
+    const btnGuia = page.getByRole('button', { name: /Guía de Captura/i });
+    if (await btnGuia.isVisible().catch(() => false)) {
+      await btnGuia.click();
+      await page.waitForTimeout(300);
+      await expect(page.getByText(/Coloca el teléfono a 2 metros/i)).toBeVisible();
+      // Avanzar paso
+      const btnSiguiente = page.getByRole('button', { name: /Siguiente/i });
+      if (await btnSiguiente.isVisible().catch(() => false)) {
+        await btnSiguiente.click();
+        await page.waitForTimeout(200);
+        await expect(page.getByText(/Ponte frente a la luz/i)).toBeVisible();
+      }
+      const btnCerrarGuia = page.getByRole('button', { name: /Cerrar guía/i });
+      await btnCerrarGuia.click();
+      await page.waitForTimeout(300);
+    }
 
     // 3. Probar botón "Arquitectura" (Modal)
     const btnArqui = page.getByRole('button', { name: /Arquitectura/i });

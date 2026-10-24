@@ -7,15 +7,19 @@ ENV PYTHONPATH=/app
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
+    curl libglib2.0-0 libsm6 libxext6 libxrender-dev libgl1 libegl1 libgles2 \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
+COPY services/ia/requirements_ia.txt ./requirements_ia.txt
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir -r requirements_ia.txt
 
-# Copiar servicio de IA
+# Copiar servicio de IA, modelos, tests y datos
 COPY services ./services
+COPY tests ./tests
+COPY data ./data
+COPY artifacts ./artifacts
+COPY pytest.ini ./
 
 EXPOSE 8001
 

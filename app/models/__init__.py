@@ -1,5 +1,5 @@
 from .base import Base
-from .catalogs import RolSistema, TipoDocumento, TipoOperacionKardex, CatalogoSomatotipo, CatalogoGenero
+from .catalogs import RolSistema, TipoDocumento, TipoOperacionKardex, CatalogoSomatotipo, CatalogoGenero, PlanNutricionalSomatotipo
 from .users import Usuario, Proveedor
 from .products import CategoriaProducto, Producto
 from .transactions import Compra, DetalleCompra, Venta, DetalleVenta
@@ -13,6 +13,7 @@ __all__ = [
     "TipoOperacionKardex",
     "CatalogoSomatotipo",
     "CatalogoGenero",
+    "PlanNutricionalSomatotipo",
     "Usuario",
     "Proveedor",
     "CategoriaProducto",

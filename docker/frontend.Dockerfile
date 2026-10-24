@@ -4,7 +4,7 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Inyectar URL del API en tiempo de compilación para Vite
-ARG VITE_API_URL=http://localhost:8000
+ARG VITE_API_URL=/api
 ENV VITE_API_URL=$VITE_API_URL
 
 # Copiar manifiestos e instalar dependencias

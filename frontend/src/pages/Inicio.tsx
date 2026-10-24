@@ -7,7 +7,6 @@ import { getProductImage, storeLogo } from '../utils/productImages';
 import { getMaskedRoleLabel } from '../utils/security';
 import { ProductCard } from '../components/ProductCard';
 import { DisciplinesSection } from '../components/DisciplinesSection';
-import { ThemeToggle } from '../components/ThemeToggle';
 import { AnimatePresence, motion } from 'framer-motion';
 import { toast } from 'sonner';
 import {
@@ -22,7 +21,52 @@ import {
   Scan,
   RefreshCw,
   WifiOff,
+  ArrowUpRight,
+  Camera,
+  MapPin,
+  PackageCheck,
+  ShieldCheck,
+  UsersRound,
 } from 'lucide-react';
+
+const brandShowcase = [
+  {
+    name: 'MuscleTech',
+    category: 'Proteína y recuperación',
+    image: '/products/MuscleTech_NitroTech_Milk_Chocolate_4lb.jpg',
+  },
+  {
+    name: 'Dragon Pharma',
+    category: 'Rendimiento y creatina',
+    image: '/products/Dragon_Pharma_ATP_Force_Creatine.png',
+  },
+  {
+    name: 'Evogen',
+    category: 'Aislados de proteína',
+    image: '/products/Evogen_IsoJect_Whey_Protein_Isolate.png',
+  },
+  {
+    name: 'Insane Labz',
+    category: 'Preentrenamiento',
+    image: '/products/Insane_Labz_Psychotic_Watermelon.png',
+  },
+  {
+    name: 'ADN',
+    category: 'Proteína diaria',
+    image: '/products/ADN_100_Whey_Pro_Negro_Azul.png',
+  },
+  {
+    name: 'Level Pro USA',
+    category: 'Nutrición deportiva',
+    image: '/products/Level_Pro_USA_Whey_Gold_Pro.webp',
+  },
+];
+
+const socialLinks = {
+  instagram: 'https://www.instagram.com/spartansuplementos_bolivia/',
+  facebook: 'https://www.facebook.com/profile.php?id=100069321991512',
+  location: 'https://www.google.com/maps/place/ABI%27S+FIT+CLUB+Herbalife/@-16.5015046,-68.120228,19z/data=!3m1!4b1!4m6!3m5!1s0x915f2149bc5e4a17:0x1c43a1123cadeefd!8m2!3d-16.5015046!4d-68.120228!16s%2Fg%2F11j34_9x5s?entry=ttu&g_ep=EgoyMDI2MTAyMC4wIKXMDSoASAFQAw%3D%3D',
+};
 
 export const Inicio: React.FC = () => {
   const { user, role, logout } = useAuth();
@@ -114,7 +158,6 @@ export const Inicio: React.FC = () => {
 
           <div className="flex items-center gap-2 sm:gap-3">
             {/* Theme Toggle Button */}
-            <ThemeToggle />
 
             {user ? (
               <div className="flex items-center gap-3">
@@ -256,7 +299,6 @@ export const Inicio: React.FC = () => {
 
               {/* Mobile Theme Toggle */}
               <div className="pt-2">
-                <ThemeToggle variant="pill" className="w-full justify-center py-2.5" />
               </div>
             </motion.div>
           )}
@@ -283,26 +325,23 @@ export const Inicio: React.FC = () => {
         <div className="absolute -bottom-10 left-10 w-[400px] h-[260px] bg-white/5 rounded-full blur-[140px] pointer-events-none z-10" />
 
         <div className="max-w-[1280px] mx-auto px-6 relative z-20 w-full">
-          {/* Live Verified Stock Pill */}
+          {/* Availability context */}
           <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 bg-[#111111]/85 backdrop-blur-md border border-white/10 rounded-full mb-6 shadow-sm">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
             </span>
             <span className="font-['JetBrains_Mono'] text-[10px] sm:text-[11px] text-zinc-300 uppercase font-bold tracking-wider">
-              Stock Verificado en Sucursal — Despacho a Toda Bolivia
+              Disponibilidad consultable por sucursal
             </span>
           </div>
 
-          <div className="mb-3 font-['JetBrains_Mono'] text-[11px] font-bold tracking-widest text-[#a1a1aa] uppercase">
-            SPARTAN PERFORMANCE NUTRITION
-          </div>
           <h1 className="font-['Anybody'] text-4xl sm:text-6xl lg:text-7xl font-black uppercase text-white tracking-tight leading-[0.95] max-w-3xl">
             Nutrición Deportiva<br />
-            <span className="text-[#e8dc00]">Certificada</span>
+            <span className="text-[#e8dc00]">con criterio</span>
           </h1>
           <p className="text-base sm:text-lg text-zinc-300 max-w-xl mt-6 leading-relaxed font-normal">
-            Rendimiento respaldado por ciencia. Suplementación, entrenamiento y análisis corporal en una sola plataforma.
+            Suplementación, entrenamiento y evaluación corporal en una plataforma diseñada para decisiones informadas.
           </p>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-start gap-3 mt-8">
@@ -310,21 +349,21 @@ export const Inicio: React.FC = () => {
               href="#catalogo"
               className="spartan-btn-primary px-7 py-3.5 text-xs flex items-center justify-center gap-2 cursor-pointer shadow-lg rounded-xl w-full sm:w-auto font-semibold"
             >
-              <span>Explorar Catálogo</span>
+              <span>Explorar el catálogo</span>
               <ArrowRight className="h-4 w-4 stroke-[2.5]" />
             </a>
             <a
               href="#disciplinas"
               className="px-7 py-3.5 text-xs flex items-center justify-center gap-2 cursor-pointer rounded-xl bg-[#141414] hover:bg-[#1c1c1c] border border-white/10 text-white w-full sm:w-auto font-medium transition-colors"
             >
-              <span>Ver Disciplinas →</span>
+              <span>Conocer disciplinas</span>
             </a>
             <Link
               to="/biometria"
               className="px-7 py-3.5 text-xs flex items-center justify-center gap-2 cursor-pointer border border-white/10 hover:border-white/20 hover:text-white rounded-xl bg-transparent text-zinc-400 w-full sm:w-auto font-medium transition-colors"
             >
               <Scan className="h-4 w-4" />
-              <span>Análisis Corporal</span>
+              <span>Evaluación corporal</span>
             </Link>
           </div>
 
@@ -332,26 +371,26 @@ export const Inicio: React.FC = () => {
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-12 pt-8 border-t border-white/[0.07] max-w-2xl">
             <div className="bg-[#111111]/80 backdrop-blur-sm border border-white/[0.07] rounded-xl p-4 transition-colors">
               <span className="font-['Anybody'] text-2xl sm:text-3xl font-black text-white block">
-                {productos.length > 0 ? productos.length : '+120'}
+                {productos.length > 0 ? productos.length : '—'}
               </span>
               <span className="font-['JetBrains_Mono'] text-[10px] uppercase text-zinc-400 tracking-wider font-semibold mt-0.5 block">
-                Suplementos Activos
+                Referencias disponibles
               </span>
             </div>
             <div className="bg-[#111111]/80 backdrop-blur-sm border border-white/[0.07] rounded-xl p-4 transition-colors">
               <span className="font-['Anybody'] text-2xl sm:text-3xl font-black text-white block">
-                100%
+                Catálogo
               </span>
               <span className="font-['JetBrains_Mono'] text-[10px] uppercase text-zinc-400 tracking-wider font-semibold mt-0.5 block">
-                Productos Verificados
+                Información de productos
               </span>
             </div>
             <div className="col-span-2 sm:col-span-1 bg-[#111111]/80 backdrop-blur-sm border border-white/[0.07] rounded-xl p-4 transition-colors">
               <span className="font-['Anybody'] text-2xl sm:text-3xl font-black text-[#e8dc00] block">
-                IA & Pose
+                Evaluación
               </span>
               <span className="font-['JetBrains_Mono'] text-[10px] uppercase text-zinc-400 tracking-wider font-semibold mt-0.5 block">
-                Perfil Biométrico
+                Perfil corporal
               </span>
             </div>
           </div>
@@ -361,18 +400,121 @@ export const Inicio: React.FC = () => {
       {/* ── Disciplinas & Filosofía de Entrenamiento Spartan ── */}
       <DisciplinesSection />
 
+      <section className="border-y border-white/[0.07] bg-[#0B0B0B] py-16 sm:py-20">
+        <div className="mx-auto max-w-[1280px] px-6">
+          <div className="mb-9 flex flex-col justify-between gap-5 md:flex-row md:items-end">
+            <div className="max-w-2xl">
+              <h2 className="font-['Anybody'] text-3xl font-bold uppercase tracking-tight text-white sm:text-4xl">
+                Marcas para cada etapa del entrenamiento
+              </h2>
+              <p className="mt-3 max-w-xl text-sm leading-6 text-zinc-400 sm:text-base">
+                Explora una selección de líneas de nutrición deportiva disponibles en Spartan Suplementos. La oferta puede variar según inventario.
+              </p>
+            </div>
+            <Link to="/catalogo" className="group inline-flex items-center gap-2 self-start font-['JetBrains_Mono'] text-[11px] font-bold uppercase tracking-wider text-[#e8dc00] transition-colors hover:text-white md:self-auto">
+              Ver productos disponibles
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+            {brandShowcase.map((brand) => (
+              <article key={brand.name} className="group overflow-hidden rounded-2xl border border-white/[0.08] bg-[#101010] transition-colors hover:border-[#e8dc00]/45">
+                <div className="relative flex aspect-[4/5] items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_50%_35%,rgba(232,220,0,0.13),transparent_56%)] p-4">
+                  <img
+                    src={brand.image}
+                    alt={`Producto ${brand.name}`}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-contain drop-shadow-2xl transition-transform duration-500 group-hover:scale-105"
+                  />
+                </div>
+                <div className="border-t border-white/[0.07] px-4 py-3.5">
+                  <h3 className="font-['Anybody'] text-sm font-bold uppercase tracking-tight text-white">{brand.name}</h3>
+                  <p className="mt-1 font-['JetBrains_Mono'] text-[9px] uppercase tracking-wide text-zinc-500">{brand.category}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+          <p className="mt-5 font-['JetBrains_Mono'] text-[10px] uppercase tracking-wide text-zinc-500">
+            Consulta la disponibilidad registrada antes de visitar la tienda.
+          </p>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-[1280px] px-6 py-16 sm:py-20">
+        <div className="grid overflow-hidden rounded-3xl border border-white/[0.1] bg-[#101010] lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="relative min-h-[290px] overflow-hidden lg:min-h-full">
+            <img src="/hero_cinematic.jpg" alt="Entrenamiento de fuerza" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/25 to-transparent lg:bg-gradient-to-r" />
+            <p className="absolute bottom-5 left-6 right-6 font-['JetBrains_Mono'] text-[10px] font-semibold uppercase tracking-wider text-white/70">
+              Decisiones informadas, objetivos personales
+            </p>
+          </div>
+          <div className="p-7 sm:p-10 lg:p-12">
+            <h2 className="max-w-xl font-['Anybody'] text-3xl font-bold uppercase tracking-tight text-white sm:text-4xl">
+              Información que acompaña tu decisión
+            </h2>
+            <p className="mt-4 max-w-xl text-sm leading-6 text-zinc-400 sm:text-base">
+              Spartan organiza productos, evaluación corporal y atención en tienda para que puedas revisar cada opción con mayor claridad.
+            </p>
+            <ul className="mt-8 space-y-5">
+              <li className="flex gap-4">
+                <PackageCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#e8dc00]" aria-hidden="true" />
+                <div>
+                  <h3 className="text-sm font-semibold text-white">Detalles de producto</h3>
+                  <p className="mt-1 text-sm leading-5 text-zinc-500">Revisa presentación, categoría, precio registrado y disponibilidad referencial.</p>
+                </div>
+              </li>
+              <li className="flex gap-4">
+                <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#e8dc00]" aria-hidden="true" />
+                <div>
+                  <h3 className="text-sm font-semibold text-white">Evaluación corporal orientativa</h3>
+                  <p className="mt-1 text-sm leading-5 text-zinc-500">Obtén un perfil estimado como punto de partida para conversar sobre tus objetivos.</p>
+                </div>
+              </li>
+            </ul>
+            <div className="mt-9 flex flex-wrap gap-3">
+              <Link to="/catalogo" className="spartan-btn-primary inline-flex items-center gap-2 px-5 py-3 text-[11px]">
+                Explorar catálogo <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+              <Link to="/biometria" className="spartan-btn-secondary inline-flex items-center gap-2 px-5 py-3 text-[11px]">
+                Ver evaluación corporal
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-[1280px] px-6 pb-16 sm:pb-20" id="visitanos">
+        <div className="relative overflow-hidden rounded-3xl border border-[#e8dc00]/25 bg-[#151500] px-7 py-9 sm:px-10 sm:py-11">
+          <div className="absolute -right-20 -top-28 h-64 w-64 rounded-full bg-[#e8dc00]/10 blur-3xl" aria-hidden="true" />
+          <div className="relative flex flex-col justify-between gap-7 md:flex-row md:items-center">
+            <div className="flex max-w-2xl gap-4 sm:gap-5">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#e8dc00]/35 bg-black/25 text-[#e8dc00]">
+                <MapPin className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <div>
+                <h2 className="font-['Anybody'] text-2xl font-bold uppercase tracking-tight text-white sm:text-3xl">Visita Spartan Suplementos</h2>
+                <p className="mt-2 text-sm leading-6 text-zinc-300">Consulta nuestra ubicación en Google Maps y confirma la disponibilidad del producto que buscas antes de visitarnos.</p>
+              </div>
+            </div>
+            <a href={socialLinks.location} target="_blank" rel="noreferrer" className="spartan-btn-primary inline-flex shrink-0 items-center justify-center gap-2 px-5 py-3 text-[11px]">
+              Abrir ubicación <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* ── Catálogo Section ── */}
       <section className="py-16 max-w-[1280px] mx-auto px-6" id="catalogo">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-8">
           <div>
-            <span className="font-['JetBrains_Mono'] text-[11px] uppercase tracking-wider text-[#e8dc00] block mb-1 font-semibold">
-              Catálogo Oficial
-            </span>
             <h2 className="font-['Anybody'] text-2xl sm:text-3xl text-white uppercase font-bold tracking-tight">
               Suplementos Disponibles
             </h2>
             <p className="text-sm text-zinc-400 mt-1">
-              {productos.length} productos verificados en inventario.
+              {productos.length > 0 ? `${productos.length} productos para explorar.` : 'Explora categorías e información de productos.'}
             </p>
           </div>
 
@@ -395,6 +537,7 @@ export const Inicio: React.FC = () => {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Buscar suplemento o SKU..."
+                aria-label="Buscar suplemento o SKU"
                 className="w-full spartan-glass-input pl-10 pr-4 py-2 text-xs outline-none font-['JetBrains_Mono'] transition-colors rounded-xl"
               />
             </div>
@@ -402,7 +545,9 @@ export const Inicio: React.FC = () => {
             <div className="relative max-w-full overflow-hidden w-full md:w-auto">
               <div className="flex items-center gap-1.5 overflow-x-auto max-w-full pb-1 sm:pb-0 scrollbar-none flex-nowrap sm:flex-wrap pr-8 sm:pr-0">
                 <button
+                  type="button"
                   onClick={() => setSelectedCat('ALL')}
+                  aria-pressed={selectedCat === 'ALL'}
                   className={`relative px-4 py-1.5 text-[11px] font-['JetBrains_Mono'] uppercase font-bold transition-colors cursor-pointer rounded-xl overflow-hidden shrink-0 ${
                     selectedCat === 'ALL' ? 'text-black' : 'text-zinc-400 hover:text-white'
                   }`}
@@ -421,7 +566,9 @@ export const Inicio: React.FC = () => {
                   return (
                     <button
                       key={c.id_categoria}
+                      type="button"
                       onClick={() => setSelectedCat(c.id_categoria)}
+                      aria-pressed={isCatActive}
                       className={`relative px-4 py-1.5 text-[11px] font-['JetBrains_Mono'] uppercase font-bold transition-colors cursor-pointer rounded-xl overflow-hidden shrink-0 ${
                         isCatActive ? 'text-black' : 'text-zinc-400 hover:text-white'
                       }`}
@@ -570,16 +717,58 @@ export const Inicio: React.FC = () => {
       </AnimatePresence>
 
       {/* ── Footer ── */}
-      <footer className="border-t border-[#1A1A1A] py-8">
-        <div className="max-w-[1280px] mx-auto px-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <span className="font-['JetBrains_Mono'] text-[11px] text-[#737373] uppercase">
-            © 2026 Spartan Suplementos — Bolivia
-          </span>
-          <div className="flex gap-4 text-[11px] font-['JetBrains_Mono'] text-[#555] uppercase">
-            <a href="#disciplinas" className="hover:text-[#e8dc00] transition-colors">Disciplinas</a>
-            <a href="#catalogo" className="hover:text-[#e8dc00] transition-colors">Catálogo</a>
-            <Link to="/biometria" className="hover:text-[#e8dc00] transition-colors">Biometría</Link>
-            <Link to="/login" className="hover:text-[#e8dc00] transition-colors">Acceso</Link>
+      <footer className="border-t border-white/[0.08] bg-[#090909]">
+        <div className="mx-auto grid max-w-[1280px] gap-10 px-6 py-12 sm:grid-cols-2 lg:grid-cols-[1.35fr_0.8fr_0.9fr] lg:py-16">
+          <div className="max-w-sm">
+            <Link to="/" className="inline-flex items-center gap-3" aria-label="Ir al inicio de Spartan Suplementos">
+              <img src={storeLogo} alt="Spartan Suplementos" className="h-10 w-auto object-contain" />
+              <span className="font-['Anybody'] text-lg font-black uppercase tracking-tight text-white">Spartan</span>
+            </Link>
+            <p className="mt-5 text-sm leading-6 text-zinc-500">
+              Nutrición deportiva, información de productos y acompañamiento para objetivos de entrenamiento en Bolivia.
+            </p>
+            <div className="mt-6 flex gap-3">
+              <a href={socialLinks.instagram} target="_blank" rel="noreferrer" aria-label="Visitar Instagram de Spartan Suplementos" className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-zinc-400 transition-colors hover:border-[#e8dc00]/60 hover:text-[#e8dc00]">
+                <Camera className="h-4 w-4" aria-hidden="true" />
+              </a>
+              <a href={socialLinks.facebook} target="_blank" rel="noreferrer" aria-label="Visitar Facebook de Spartan Suplementos" className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-zinc-400 transition-colors hover:border-[#e8dc00]/60 hover:text-[#e8dc00]">
+                <UsersRound className="h-4 w-4" aria-hidden="true" />
+              </a>
+              <a href={socialLinks.location} target="_blank" rel="noreferrer" aria-label="Abrir ubicación de Spartan Suplementos" className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-zinc-400 transition-colors hover:border-[#e8dc00]/60 hover:text-[#e8dc00]">
+                <MapPin className="h-4 w-4" aria-hidden="true" />
+              </a>
+            </div>
+          </div>
+
+          <div>
+            <h2 className="font-['JetBrains_Mono'] text-[10px] font-bold uppercase tracking-[0.16em] text-[#e8dc00]">Explora</h2>
+            <nav className="mt-5 flex flex-col items-start gap-3 text-sm text-zinc-400" aria-label="Navegación del pie de página">
+              <a href="#disciplinas" className="transition-colors hover:text-white">Disciplinas de entrenamiento</a>
+              <a href="#catalogo" className="transition-colors hover:text-white">Catálogo</a>
+              <Link to="/biometria" className="transition-colors hover:text-white">Evaluación corporal</Link>
+              <Link to="/login" className="transition-colors hover:text-white">Acceso al sistema</Link>
+            </nav>
+          </div>
+
+          <div>
+            <h2 className="font-['JetBrains_Mono'] text-[10px] font-bold uppercase tracking-[0.16em] text-[#e8dc00]">Síguenos</h2>
+            <div className="mt-5 flex flex-col items-start gap-3 text-sm text-zinc-400">
+              <a href={socialLinks.instagram} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 transition-colors hover:text-white">
+                Instagram <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+              </a>
+              <a href={socialLinks.facebook} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 transition-colors hover:text-white">
+                Facebook <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+              </a>
+              <a href="#visitanos" className="inline-flex items-center gap-2 transition-colors hover:text-white">
+                Ubicación de Spartan Suplementos <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
+              </a>
+            </div>
+          </div>
+        </div>
+        <div className="border-t border-white/[0.07]">
+          <div className="mx-auto flex max-w-[1280px] flex-col gap-2 px-6 py-5 font-['JetBrains_Mono'] text-[10px] uppercase tracking-wide text-zinc-600 sm:flex-row sm:items-center sm:justify-between">
+            <span>© 2026 Spartan Suplementos — Bolivia</span>
+            <span>Consulta disponibilidad antes de visitar la tienda</span>
           </div>
         </div>
       </footer>

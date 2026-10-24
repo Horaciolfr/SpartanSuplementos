@@ -44,3 +44,39 @@ class KardexMovimientoOut(BaseModel):
     fecha_registro: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+class KardexMovimientoValorizadoOut(BaseModel):
+    id_kardex: int
+    tipo_operacion: str
+    cantidad: int
+    costo_unitario_movimiento: float
+    total_movimiento: float
+    saldo_unidades: int
+    pmp_resultante: float
+    saldo_valorizado: float
+    id_venta: Optional[int] = None
+    id_compra: Optional[int] = None
+    fecha_registro: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+class KardexValorizadoOut(BaseModel):
+    id_producto: int
+    codigo_sku: str
+    nombre_producto: str
+    stock_actual: int
+    pmp_actual: float
+    valor_total_inventario: float
+    metodo_valorizacion: str = "PMP (Precio Medio Ponderado)"
+    movimientos: list[KardexMovimientoValorizadoOut]
+
+    model_config = ConfigDict(from_attributes=True)
+
+class ClienteOut(BaseModel):
+    id_usuario: int
+    nombres: str
+    apellidos: str
+    email: str
+    numero_documento: str
+
+    model_config = ConfigDict(from_attributes=True)

@@ -229,14 +229,11 @@ export const Catalogo: React.FC = () => {
         {/* Page Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-8 pb-6 border-b border-[#1A1A1A]">
           <div>
-            <span className="font-['JetBrains_Mono'] text-[11px] uppercase tracking-wider text-[#e8dc00] block mb-1 font-bold">
-              Catálogo Spartan
-            </span>
             <h1 className="font-['Anybody'] text-3xl sm:text-4xl font-black text-white uppercase tracking-tight">
               Productos
             </h1>
             <p className="text-sm text-[#ccc7ab] mt-1">
-              {productos.length} suplementos activos en inventario.
+              Consulta productos, precios y disponibilidad registrada.
             </p>
           </div>
 
@@ -296,6 +293,7 @@ export const Catalogo: React.FC = () => {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Buscar producto o SKU..."
+                aria-label="Buscar por producto o SKU"
                 className="w-full spartan-glass-input pl-10 pr-4 py-2 text-xs outline-none font-['JetBrains_Mono'] placeholder-[#555] rounded-xl"
               />
             </div>
@@ -304,6 +302,7 @@ export const Catalogo: React.FC = () => {
               <div className="flex items-center gap-1.5 overflow-x-auto max-w-full pb-1 sm:pb-0 scrollbar-none flex-nowrap sm:flex-wrap pr-8 sm:pr-0">
                 <button
                   onClick={() => setSelectedCat('ALL')}
+                  aria-pressed={selectedCat === 'ALL'}
                   className={`px-3.5 py-1.5 text-[11px] font-['JetBrains_Mono'] uppercase font-bold transition-all cursor-pointer rounded-xl shrink-0 ${
                     selectedCat === 'ALL'
                       ? 'bg-[#e8dc00] text-black shadow-[0_0_12px_rgba(242,229,0,0.3)]'
@@ -316,6 +315,7 @@ export const Catalogo: React.FC = () => {
                   <button
                     key={c.id_categoria}
                     onClick={() => setSelectedCat(c.id_categoria)}
+                    aria-pressed={selectedCat === c.id_categoria}
                     className={`px-3.5 py-1.5 text-[11px] font-['JetBrains_Mono'] uppercase font-bold transition-all cursor-pointer rounded-xl shrink-0 ${
                       selectedCat === c.id_categoria
                         ? 'bg-[#e8dc00] text-black shadow-[0_0_12px_rgba(242,229,0,0.3)]'
@@ -351,9 +351,19 @@ export const Catalogo: React.FC = () => {
             </button>
           </div>
         ) : filteredProducts.length === 0 ? (
-          <div className="py-16 text-center border border-white/10 bg-[#0D0D0D]/60 backdrop-blur-md rounded-2xl">
-            <p className="text-sm text-white font-medium">No se encontraron productos</p>
-            <p className="text-xs text-zinc-400 mt-1">Intenta cambiar los filtros.</p>
+          <div className="py-16 px-6 text-center border border-white/10 bg-[#0D0D0D]/60 backdrop-blur-md rounded-2xl">
+            <p className="text-sm text-white font-medium">No encontramos productos con esos criterios</p>
+            <p className="text-xs text-zinc-400 mt-1">Prueba otra búsqueda o restablece los filtros para ver todo el catálogo.</p>
+            <button
+              type="button"
+              onClick={() => {
+                setSearch('');
+                setSelectedCat('ALL');
+              }}
+              className="spartan-btn-secondary mt-5 px-4 py-2 text-xs"
+            >
+              Restablecer filtros
+            </button>
           </div>
         ) : viewMode === 'SECTIONS' ? (
           <div className="space-y-12">

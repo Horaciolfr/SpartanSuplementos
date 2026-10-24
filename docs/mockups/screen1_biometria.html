@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mockup 1 - Escáner Biométrico IA 3D | Spartan Suplementos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #080C14;
+      --surface: #0F172A;
+      --surface-card: #141E33;
+      --border: #1E293B;
+      --border-glow: rgba(0, 229, 255, 0.25);
+      --primary: #00E5FF;
+      --primary-dim: rgba(0, 229, 255, 0.12);
+      --accent: #10B981;
+      --accent-dim: rgba(16, 185, 129, 0.12);
+      --warning: #F59E0B;
+      --danger: #EF4444;
+      --text-main: #F8FAFC;
+      --text-muted: #94A3B8;
+      --font: 'Plus Jakarta Sans', sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* DESKTOP LAYOUT (default) */
+    .app-container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      max-height: 900px;
+      overflow: hidden;
+    }
+
+    /* Top Navigation */
+    header.top-nav {
+      height: 64px;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-logo {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #00E5FF, #2563EB);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #080C14;
+      font-size: 18px;
+      box-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
+    }
+    .brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+    .brand-badge {
+      font-size: 11px;
+      font-family: var(--mono);
+      background: var(--primary-dim);
+      color: var(--primary);
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid rgba(0, 229, 255, 0.3);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 20px;
+    }
+    .nav-item {
+      font-size: 14px;
+      color: var(--text-muted);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .nav-item.active {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+    }
+    .nav-item.active .dot {
+      background: var(--primary);
+      box-shadow: 0 0 8px var(--primary);
+    }
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text-muted);
+    }
+
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+    }
+    .user-badge {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 11px;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #334155;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      color: #F8FAFC;
+      border: 2px solid var(--border);
+    }
+
+    /* Main Content Layout */
+    .main-body {
+      display: flex;
+      flex: 1;
+      height: calc(100vh - 64px);
+      overflow: hidden;
+    }
+
+    /* Left: Live Viewport */
+    .scanner-viewport {
+      flex: 1;
+      background: #05080E;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-right: 1px solid var(--border);
+    }
+
+    /* Scanner HUD Overlay */
+    .hud-header {
+      position: absolute;
+      top: 16px;
+      left: 20px;
+      right: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+    }
+    .hud-pill {
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-family: var(--mono);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .hud-pill .live-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #EF4444;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.9); }
+    }
+
+    /* Viewport Visual */
+    .viewport-canvas {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at center, #0F172A 0%, #05080E 80%);
+    }
+
+    /* Human Skeleton Overlay SVG */
+    .human-svg-overlay {
+      height: 88%;
+      max-height: 680px;
+      filter: drop-shadow(0 0 16px rgba(0, 229, 255, 0.4));
+    }
+
+    /* Telemetry Overlays */
+    .telemetry-card {
+      position: absolute;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-family: var(--mono);
+      font-size: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    .telemetry-card.shoulder {
+      top: 180px;
+      left: 120px;
+    }
+    .telemetry-card.waist {
+      top: 360px;
+      right: 120px;
+    }
+    .telemetry-card.vtaper {
+      bottom: 80px;
+      left: 60px;
+    }
+    .telemetry-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+    .telemetry-val {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    /* Bottom Control Bar in Viewport */
+    .hud-footer {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      right: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 10;
+    }
+    .model-info-tag {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      background: rgba(15, 23, 42, 0.8);
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+    .model-info-tag span {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* Right: Control & Clinical Sidebar */
+    .scanner-sidebar {
+      width: 380px;
+      background: var(--surface);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 24px;
+      gap: 20px;
+    }
+    .sidebar-title {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+    .sidebar-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .form-input {
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text-main);
+      font-size: 14px;
+      font-family: var(--font);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px var(--primary);
+    }
+
+    .row-inputs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .guidance-box {
+      background: rgba(0, 229, 255, 0.05);
+      border: 1px solid rgba(0, 229, 255, 0.2);
+      border-radius: 8px;
+      padding: 14px;
+    }
+    .guidance-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+    .guidance-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .guidance-list li {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .guidance-list li::before {
+      content: "✓";
+      color: var(--accent);
+      font-weight: bold;
+    }
+
+    .btn-capture {
+      background: linear-gradient(135deg, #00E5FF, #2563EB);
+      color: #080C14;
+      font-weight: 700;
+      font-size: 15px;
+      border: none;
+      border-radius: 10px;
+      padding: 14px 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 0 24px rgba(0, 229, 255, 0.35);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-capture:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 32px rgba(0, 229, 255, 0.5);
+    }
+
+    /* MOBILE SPECIFIC STYLES (triggered by viewport or container) */
+    @media (max-width: 600px) {
+      .app-container {
+        height: 100vh;
+        max-height: 844px;
+        background: #000;
+      }
+      header.top-nav {
+        height: 52px;
+        padding: 0 16px;
+        background: transparent;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        border-bottom: none;
+        z-index: 100;
+      }
+      .nav-links, .scanner-sidebar, .user-profile {
+        display: none !important;
+      }
+      .brand-title {
+        font-size: 14px;
+      }
+      .main-body {
+        height: 100%;
+        flex-direction: column;
+      }
+      .scanner-viewport {
+        border-right: none;
+        height: 100%;
+      }
+      .hud-header {
+        top: 60px;
+        left: 14px;
+        right: 14px;
+      }
+      .telemetry-card.shoulder, .telemetry-card.waist {
+        display: none;
+      }
+      .telemetry-card.vtaper {
+        bottom: 120px;
+        left: 16px;
+        right: 16px;
+        text-align: center;
+      }
+      .hud-footer {
+        bottom: 30px;
+        justify-content: center;
+        gap: 20px;
+      }
+      .mobile-shutter-btn {
+        display: flex !important;
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        background: #FFF;
+        border: 4px solid var(--primary);
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 0 25px var(--primary);
+        cursor: pointer;
+      }
+      .mobile-shutter-inner {
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #00E5FF, #2563EB);
+      }
+      .model-info-tag {
+        display: none;
+      }
+    }
+
+    .mobile-shutter-btn { display: none; }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Top Header Navigation -->
+    <header class="top-nav">
+      <div class="brand">
+        <div class="brand-logo">S</div>
+        <div>
+          <div class="brand-title">SPARTAN BIOMETRICS AI</div>
+        </div>
+        <span class="brand-badge">v3.4-PRO</span>
+      </div>
+
+      <nav class="nav-links">
+        <a href="#" class="nav-item active">
+          <span class="dot"></span>
+          Escáner 3D
+        </a>
+        <a href="#" class="nav-item">
+          <span class="dot"></span>
+          Somatotipos
+        </a>
+        <a href="#" class="nav-item">
+          <span class="dot"></span>
+          Planes Nutricionales
+        </a>
+        <a href="#" class="nav-item">
+          <span class="dot"></span>
+          ERP / Inventario
+        </a>
+      </nav>
+
+      <div class="user-profile">
+        <span class="user-badge">Dr. Especialista</span>
+        <div class="avatar">OM</div>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <div class="main-body">
+      <!-- Live Camera Viewport with MediaPipe Pose -->
+      <section class="scanner-viewport">
+        <!-- Floating HUD Header -->
+        <div class="hud-header">
+          <div class="hud-pill">
+            <span class="live-indicator"></span>
+            FEED EN VIVO &bull; 60 FPS
+          </div>
+          <div class="hud-pill" style="border-color: rgba(16, 185, 129, 0.4);">
+            <span style="color: var(--accent); font-weight:700;">POSTURA: ALINEADA (&plusmn;2.1&deg;)</span>
+          </div>
+        </div>
+
+        <!-- Viewport Canvas with Athletic Wireframe & Skeleton -->
+        <div class="viewport-canvas">
+          <!-- Athletic Skeleton Graphic (MediaPipe 33 Landmark Simulation) -->
+          <svg class="human-svg-overlay" viewBox="0 0 400 700" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Grid Lines Background -->
+            <line x1="50" y1="180" x2="350" y2="180" stroke="#1E293B" stroke-dasharray="4 4" stroke-width="1"/>
+            <line x1="50" y1="360" x2="350" y2="360" stroke="#1E293B" stroke-dasharray="4 4" stroke-width="1"/>
+            <line x1="200" y1="40" x2="200" y2="660" stroke="rgba(0, 229, 255, 0.2)" stroke-width="1"/>
+
+            <!-- Human Silhouette Wireframe Glow -->
+            <path d="M 200,80 Q 220,110 200,140 Q 250,150 280,180 L 310,280 L 330,380 M 200,140 Q 150,150 120,180 L 90,280 L 70,380 M 200,140 L 200,360 M 170,360 L 230,360 M 170,360 L 160,500 L 155,640 M 230,360 L 240,500 L 245,640" stroke="rgba(255,255,255,0.08)" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+
+            <!-- MediaPipe Skeleton Bones (Glowing Cyan) -->
+            <!-- Torso & Shoulders -->
+            <line x1="130" y1="180" x2="270" y2="180" stroke="#00E5FF" stroke-width="3"/>
+            <line x1="130" y1="180" x2="160" y2="360" stroke="#00E5FF" stroke-width="3"/>
+            <line x1="270" y1="180" x2="240" y2="360" stroke="#00E5FF" stroke-width="3"/>
+            <line x1="160" y1="360" x2="240" y2="360" stroke="#00E5FF" stroke-width="3"/>
+            
+            <!-- Head & Neck -->
+            <circle cx="200" cy="90" r="28" stroke="#00E5FF" stroke-width="2" fill="rgba(0, 229, 255, 0.05)"/>
+            <line x1="200" y1="118" x2="200" y2="180" stroke="#00E5FF" stroke-width="3"/>
+
+            <!-- Arms -->
+            <line x1="130" y1="180" x2="90" y2="280" stroke="#10B981" stroke-width="2.5"/>
+            <line x1="90" y1="280" x2="70" y2="380" stroke="#10B981" stroke-width="2.5"/>
+            <line x1="270" y1="180" x2="310" y2="280" stroke="#10B981" stroke-width="2.5"/>
+            <line x1="310" y1="280" x2="330" y2="380" stroke="#10B981" stroke-width="2.5"/>
+
+            <!-- Legs -->
+            <line x1="160" y1="360" x2="155" y2="500" stroke="#10B981" stroke-width="2.5"/>
+            <line x1="155" y1="500" x2="150" y2="640" stroke="#10B981" stroke-width="2.5"/>
+            <line x1="240" y1="360" x2="245" y2="500" stroke="#10B981" stroke-width="2.5"/>
+            <line x1="245" y1="500" x2="250" y2="640" stroke="#10B981" stroke-width="2.5"/>
+
+            <!-- 33 MediaPipe Keypoints (Glowing Dots) -->
+            <!-- Face -->
+            <circle cx="200" cy="85" r="4" fill="#00E5FF"/>
+            <circle cx="193" cy="80" r="3" fill="#00E5FF"/>
+            <circle cx="207" cy="80" r="3" fill="#00E5FF"/>
+            <!-- Shoulders -->
+            <circle cx="130" cy="180" r="6" fill="#FFF" stroke="#00E5FF" stroke-width="3"/>
+            <circle cx="270" cy="180" r="6" fill="#FFF" stroke="#00E5FF" stroke-width="3"/>
+            <!-- Elbows -->
+            <circle cx="90" cy="280" r="5" fill="#10B981"/>
+            <circle cx="310" cy="280" r="5" fill="#10B981"/>
+            <!-- Wrists -->
+            <circle cx="70" cy="380" r="5" fill="#10B981"/>
+            <circle cx="330" cy="380" r="5" fill="#10B981"/>
+            <!-- Hips -->
+            <circle cx="160" cy="360" r="6" fill="#FFF" stroke="#00E5FF" stroke-width="3"/>
+            <circle cx="240" cy="360" r="6" fill="#FFF" stroke="#00E5FF" stroke-width="3"/>
+            <!-- Knees -->
+            <circle cx="155" cy="500" r="5" fill="#10B981"/>
+            <circle cx="245" cy="500" r="5" fill="#10B981"/>
+            <!-- Ankles & Feet -->
+            <circle cx="150" cy="640" r="5" fill="#10B981"/>
+            <circle cx="250" cy="640" r="5" fill="#10B981"/>
+
+            <!-- Dimension Indicators -->
+            <!-- Biacromial Width -->
+            <path d="M 120,165 L 120,155 L 280,155 L 280,165" stroke="#00E5FF" stroke-width="1.5" fill="none"/>
+            <text x="200" y="148" text-anchor="middle" fill="#00E5FF" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="bold">BIACROMIAL: 43.5 cm</text>
+
+            <!-- Bicristal Width -->
+            <path d="M 150,380 L 150,390 L 250,390 L 250,380" stroke="#00E5FF" stroke-width="1.5" fill="none"/>
+            <text x="200" y="405" text-anchor="middle" fill="#00E5FF" font-family="'JetBrains Mono', monospace" font-size="11" font-weight="bold">BICRISTAL: 31.2 cm</text>
+          </svg>
+
+          <!-- Telemetry Floating Cards -->
+          <div class="telemetry-card shoulder">
+            <div class="telemetry-label">Ancho Hombros</div>
+            <div class="telemetry-val">0.435 m</div>
+          </div>
+
+          <div class="telemetry-card waist">
+            <div class="telemetry-label">Ancho Cadera</div>
+            <div class="telemetry-val">0.312 m</div>
+          </div>
+
+          <div class="telemetry-card vtaper">
+            <div class="telemetry-label">Ratio V-Taper (Hombro / Cadera)</div>
+            <div class="telemetry-val">1.39 &bull; <span style="color:var(--accent);">Tendencia Mesomórfica</span></div>
+          </div>
+        </div>
+
+        <!-- Viewport Bottom Status Bar -->
+        <div class="hud-footer">
+          <div class="model-info-tag">
+            PIPELINE IA: <span>MediaPipe Pose 3D + RF Heath-Carter</span>
+          </div>
+
+          <!-- Mobile Capture Button -->
+          <div class="mobile-shutter-btn">
+            <div class="mobile-shutter-inner"></div>
+          </div>
+
+          <div class="model-info-tag">
+            CONFIANZA DETECCIÓN: <span>98.6%</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Control & Patient Parameter Panel -->
+      <aside class="scanner-sidebar">
+        <div>
+          <h2 class="sidebar-title">Evaluación Antropométrica</h2>
+          <p class="sidebar-desc">Captura y procesamiento geométrico en tiempo real con triangulación 3D.</p>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Cliente / Atleta</label>
+          <input type="text" class="form-input" value="Carlos Mendoza Villarroel">
+        </div>
+
+        <div class="row-inputs">
+          <div class="form-group">
+            <label class="form-label">Estatura (cm)</label>
+            <input type="number" class="form-input" value="178">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Peso (kg)</label>
+            <input type="number" class="form-input" value="76.5">
+          </div>
+        </div>
+
+        <div class="row-inputs">
+          <div class="form-group">
+            <label class="form-label">Edad</label>
+            <input type="number" class="form-input" value="28">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Sexo Biológico</label>
+            <input type="text" class="form-input" value="Masculino">
+          </div>
+        </div>
+
+        <!-- Visual Guidance Checklist -->
+        <div class="guidance-box">
+          <div class="guidance-header">
+            <span>🎯</span> Calidad de Detección
+          </div>
+          <ul class="guidance-list">
+            <li>Sujeto a 2.0 m de la óptica</li>
+            <li>33 landmarks detectados activamente</li>
+            <li>Simetría bilateral &gt; 96%</li>
+            <li>Fondo con iluminación estandarizada</li>
+          </ul>
+        </div>
+
+        <div style="flex:1;"></div>
+
+        <button class="btn-capture">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+          Capturar y Analizar 3D
+        </button>
+      </aside>
+    </div>
+  </div>
+
+</body>
+</html>

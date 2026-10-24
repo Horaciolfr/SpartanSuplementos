@@ -1,0 +1,46 @@
+================================================================================
+REPORTE OFICIAL DE EVALUACIÓN DE DESEMPEÑO PREDICTIVO (OE2)
+PROYECTO DE GRADO - SPARTAN SUPLEMENTOS BOLIVIA
+Modelo: Random Forest (CART Inductivo + Regresor Multivariable)
+================================================================================
+
+1. MÉTRICAS DE CLASIFICACIÓN CATEGÓRICA (VARIABLE INDEPENDIENTE - DESEMPEÑO PREDICTIVO):
+--------------------------------------------------------------------------------
+- Tamaño del Conjunto de Prueba (Test Set Inédito): 720 registros (15% del total)
+- Exactitud Global (Accuracy): 98.47% (Meta esperada: >= 85.00%)
+- Resultado de Hipótesis OE2: SUPERADO CON ÉXITO
+
+Reporte Detallado por Clase:
+              precision    recall  f1-score   support
+
+   ECTOMORFO     0.9914    0.9706    0.9809       238
+   ENDOMORFO     0.9759    1.0000    0.9878       243
+   MESOMORFO     0.9874    0.9833    0.9853       239
+
+    accuracy                         0.9847       720
+   macro avg     0.9849    0.9846    0.9847       720
+weighted avg     0.9848    0.9847    0.9847       720
+
+
+2. MÉTRICAS DE AJUSTE MÉTRICO CONTINUO (MODELO HEATH-CARTER):
+--------------------------------------------------------------------------------
+- Error Cuadrático Medio (RMSE Global): 0.5276 (Meta esperada: < 0.80)
+- Error Absoluto Medio (MAE Global): 0.3632
+- Coeficiente de Determinación (R² Score): 0.9234
+
+Desglose por Componente Somatotípico:
+- Endomorfia (Adiposidad Relativa): RMSE = 0.6192
+- Mesomorfia (Desarrollo Músculo-Esquelético): RMSE = 0.6021
+- Ectomorfia (Linealidad Relativa): RMSE = 0.2983
+
+3. ARTEFACTOS GRÁFICOS GENERADOS PARA EL DOCUMENTO DE TESIS:
+--------------------------------------------------------------------------------
+- 01_matriz_confusion_somatotipos.png
+- 02_importancia_caracteristicas.png
+- 03_curva_roc_multiclase.png
+- 04_dispersion_biotipos_imc_vtaper.png
+
+Ubicación de Gráficos:
+1. E:\PROYECTO DE GRADO\nuevo proyecto\gráficos
+2. E:\PROYECTO DE GRADO\nuevo proyecto\Proyecto SS\docs\evidencias_tesis
+================================================================================

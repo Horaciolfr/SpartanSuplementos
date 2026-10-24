@@ -2,6 +2,7 @@
 from app.models import (
     Base,
     RolSistema, TipoDocumento, TipoOperacionKardex, CatalogoSomatotipo, CatalogoGenero,
+    PlanNutricionalSomatotipo,
     Usuario, Proveedor,
     CategoriaProducto, Producto,
     Compra, DetalleCompra, Venta, DetalleVenta,
@@ -12,6 +13,7 @@ from app.models import (
 __all__ = [
     "Base",
     "RolSistema", "TipoDocumento", "TipoOperacionKardex", "CatalogoSomatotipo", "CatalogoGenero",
+    "PlanNutricionalSomatotipo",
     "Usuario", "Proveedor",
     "CategoriaProducto", "Producto",
     "Compra", "DetalleCompra", "Venta", "DetalleVenta",

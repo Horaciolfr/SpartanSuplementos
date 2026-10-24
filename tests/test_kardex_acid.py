@@ -88,7 +88,7 @@ async def test_venta_quiebre_stock_rollback_total():
             id_cliente=cliente.id_usuario,
             id_cajero=cajero.id_usuario,
             numero_recibo=recibo_num,
-            total_transaccion=precio_unitario * cantidad_excesiva,
+            total_transaccion=round(min(precio_unitario * cantidad_excesiva, 99999999.0), 2),
             estado_pago="PAGADO"
         )
         session.add(nueva_venta)

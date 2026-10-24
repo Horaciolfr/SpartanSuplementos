@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Entrega de Mockups Web y Móvil | Spartan Suplementos Bolivia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #070A10;
+      --card-bg: #0F172A;
+      --card-border: #1E293B;
+      --primary: #00E5FF;
+      --accent: #10B981;
+      --text: #F8FAFC;
+      --text-muted: #94A3B8;
+      --font: 'Plus Jakarta Sans', sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      padding: 40px 20px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    header.hero {
+      text-align: center;
+      margin-bottom: 50px;
+      padding-bottom: 30px;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .badge {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 4px 12px;
+      background: rgba(0, 229, 255, 0.1);
+      color: var(--primary);
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      border-radius: 999px;
+      margin-bottom: 16px;
+    }
+    h1 {
+      font-size: 38px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #FFFFFF, #94A3B8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .subtitle {
+      font-size: 16px;
+      color: var(--text-muted);
+      max-width: 780px;
+      margin: 0 auto;
+    }
+
+    .section-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin: 40px 0 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .section-title::before {
+      content: "";
+      width: 4px;
+      height: 24px;
+      background: var(--primary);
+      border-radius: 2px;
+    }
+
+    /* Comparison Grid */
+    .mockup-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+      margin-bottom: 40px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 24px;
+    }
+    .mockup-pane {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .pane-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .img-wrapper {
+      background: #000;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .img-wrapper img {
+      width: 100%;
+      height: auto;
+      display: block;
+      transition: transform 0.3s;
+    }
+    .img-wrapper:hover img {
+      transform: scale(1.015);
+    }
+
+    .desc-box {
+      grid-column: 1 / -1;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      padding: 16px;
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+    .desc-box strong { color: var(--text); }
+
+    /* Rationale Cards */
+    .rationale-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .rationale-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .rationale-card h3 {
+      font-size: 16px;
+      color: var(--primary);
+      margin-bottom: 10px;
+    }
+    .rationale-card p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 900px) {
+      .mockup-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header class="hero">
+      <div class="badge">PROYECTO DE GRADO &bull; INGENIERÍA DE SISTEMAS INFORMÁTICOS</div>
+      <h1>Diseño de Mockups de Alta Fidelidad</h1>
+      <p class="subtitle">
+        Diseño adaptativo de interfaces Web de Escritorio y Aplicación Móvil para el sistema inteligente de análisis biométrico, clasificación de somatotipos y control nutricional/ERP de Spartan Suplementos Bolivia.
+      </p>
+    </header>
+
+    <!-- MOCKUP 1 -->
+    <div class="section-title">01. Escáner Biométrico IA 3D (MediaPipe Pose)</div>
+    <div class="mockup-grid">
+      <div class="mockup-pane">
+        <div class="pane-header">
+          <span>Versión Web Escritorio (1440 &times; 900 px)</span>
+          <span style="color:var(--primary); font-family:var(--mono);">Desktop Feed + Telemetría</span>
+        </div>
+        <div class="img-wrapper">
+          <img src="capturas/web_01_biometria_escaner.png" alt="Mockup Web Escáner Biométrico">
+        </div>
+      </div>
+      <div class="mockup-pane">
+        <div class="pane-header">
+          <span>Versión Móvil (390 &times; 844 px)</span>
+          <span style="color:var(--accent); font-family:var(--mono);">Sensor Smartphone</span>
+        </div>
+        <div class="img-wrapper">
+          <img src="capturas/movil_01_biometria_escaner.png" alt="Mockup Móvil Escáner Biométrico">
+        </div>
+      </div>
+      <div class="desc-box">
+        <strong>Decisiones de Usabilidad & Funcionalidad:</strong> En escritorio, el layout aprovecha el ancho para presentar en paralelo el feed de video con la malla de 33 landmarks de MediaPipe y la consola médica de captura de parámetros (estatura, peso, checklist de postura alineada). En móvil, la interfaz pasa a ser vertical edge-to-edge con obturador táctil ergonómico optimizado para autoservicio a 2 metros de distancia.
+      </div>
+    </div>
+
+    <!-- MOCKUP 2 -->
+    <div class="section-title">02. Dashboard de Somatotipo y Somatocarta Heath-Carter</div>
+    <div class="mockup-grid">
+      <div class="mockup-pane">
+        <div class="pane-header">
+          <span>Versión Web Escritorio (1440 &times; 900 px)</span>
+          <span style="color:var(--primary); font-family:var(--mono);">Bento Grid Clínico</span>
+        </div>
+        <div class="img-wrapper">
+          <img src="capturas/web_02_dashboard_somatotipo.png" alt="Mockup Web Dashboard Somatotipo">
+        </div>
+      </div>
+      <div class="mockup-pane">
+        <div class="pane-header">
+          <span>Versión Móvil (390 &times; 844 px)</span>
+          <span style="color:var(--accent); font-family:var(--mono);">Scroll Vertical Priorizado</span>
+        </div>
+        <div class="img-wrapper">
+          <img src="capturas/movil_02_dashboard_somatotipo.png" alt="Mockup Móvil Dashboard Somatotipo">
+        </div>
+      </div>
+      <div class="desc-box">
+        <strong>Decisiones de Usabilidad & Funcionalidad:</strong> Presenta la predicción del somatotipo dominante (Mesomorfo 94.2%), la distribución de certeza probabilística y la somatocarta triaxial cartesiana (X: -1.2, Y: +4.8). En móvil, el diagnóstico principal se ubica en el viewport visible inicial para minimizar el scroll y dirigir al usuario inmediatamente hacia la prescripción nutricional.
+      </div>
+    </div>
+
+    <!-- MOCKUP 3 -->
+    <div class="section-title">03. Prescripción Nutricional Adaptativa y Suplementación</div>
+    <div class="mockup-grid">
+      <div class="mockup-pane">
+        <div class="pane-header">
+          <span>Versión Web Escritorio (1440 &times; 900 px)</span>
+          <span style="color:var(--primary); font-family:var(--mono);">Timeline + Tienda ERP</span>
+        </div>
+        <div class="img-wrapper">
+          <img src="capturas/web_03_plan_nutricional.png" alt="Mockup Web Plan Nutricional">
+        </div>
+      </div>
+      <div class="mockup-pane">
+        <div class="pane-header">
+          <span>Versión Móvil (390 &times; 844 px)</span>
+          <span style="color:var(--accent); font-family:var(--mono);">Checklist Diario</span>
+        </div>
+        <div class="img-wrapper">
+          <img src="capturas/movil_03_plan_nutricional.png" alt="Mockup Móvil Plan Nutricional">
+        </div>
+      </div>
+      <div class="desc-box">
+        <strong>Decisiones de Usabilidad & Funcionalidad:</strong> Traduce el somatotipo en un plan alimenticio estructurado (2,750 kcal) con barras de macronutrientes (Proteínas, Carbohidratos, Grasas) y un cronograma de 5 comidas diarias. Además, integra en tiempo real los suplementos deportivos verificados en el ERP (Whey Isolate, Creatina Creapure) con compra a un clic.
+      </div>
+    </div>
+
+    <!-- MOCKUP 4 -->
+    <div class="section-title">04. Punto de Venta (POS) y Kardex con IA Predictiva</div>
+    <div class="mockup-grid">
+      <div class="mockup-pane">
+        <div class="pane-header">
+          <span>Versión Web Escritorio (1440 &times; 900 px)</span>
+          <span style="color:var(--primary); font-family:var(--mono);">Terminal de Caja Dividida</span>
+        </div>
+        <div class="img-wrapper">
+          <img src="capturas/web_04_pos_inventario.png" alt="Mockup Web POS Inventario">
+        </div>
+      </div>
+      <div class="mockup-pane">
+        <div class="pane-header">
+          <span>Versión Móvil (390 &times; 844 px)</span>
+          <span style="color:var(--accent); font-family:var(--mono);">Supervisor de Stock Móvil</span>
+        </div>
+        <div class="img-wrapper">
+          <img src="capturas/movil_04_pos_inventario.png" alt="Mockup Móvil POS Inventario">
+        </div>
+      </div>
+      <div class="desc-box">
+        <strong>Decisiones de Usabilidad & Funcionalidad:</strong> El POS combina la venta en mostrador con el modelo de predicción de quiebre de stock por Machine Learning. Los productos muestran badges de alerta preventiva (ej. "Riesgo Quiebre 88%"). En móvil, el ticket se contrae en un panel inferior flotante que no obstruye la inspección del catálogo.
+      </div>
+    </div>
+
+    <!-- FUNDAMENTACIÓN DE USABILIDAD -->
+    <div class="section-title">Fundamentación Teórica de Usabilidad y Rúbrica</div>
+    <div class="rationale-grid">
+      <div class="rationale-card">
+        <h3>1. Ley de Fitts y Ergonomía</h3>
+        <p>En dispositivos móviles, las acciones principales (obturador de captura, botón de facturación y tabs de navegación) se ubican en la 'Thumb Zone' inferior, permitiendo una interacción fluida con una sola mano sin forzar el agarre.</p>
+      </div>
+
+      <div class="rationale-card">
+        <h3>2. Reducción de Carga Cognitiva</h3>
+        <p>Se aplica la Ley de Miller agrupando la telemetría anatómica en bloques de 3 a 5 métricas clave. Los colores canónicos (Verde Mesomorfo, Cyan Ectomorfo, Naranja Endomorfo) crean modelos mentales consistentes en ambas plataformas.</p>
+      </div>
+
+      <div class="rationale-card">
+        <h3>3. Accesibilidad WCAG 2.1 (Nivel AA)</h3>
+        <p>El diseño en modo oscuro clínico garantiza un ratio de contraste superior a 4.5:1 en todos los textos y datos numéricos, optimizando la visibilidad bajo luz artificial intensa en gimnasios y consultorios.</p>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

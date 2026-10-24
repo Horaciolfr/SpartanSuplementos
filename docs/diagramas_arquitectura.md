@@ -178,3 +178,66 @@ sequenceDiagram
         Endpoint-->>Cliente: 200 OK (Datos protegidos)
     end
 ```
+
+---
+
+## 3. Tabla de Enrutamiento del API Gateway (Gateway Routing Table)
+
+El API Gateway opera como punto de entrada unificado bajo arquitectura ASGI (FastAPI), aplicando autenticación RBAC, trazabilidad con `X-Request-Id`, histograma de latencia Prometheus y proxy resiliente hacia el microservicio de IA con reintentos y timeout global de 10s:
+
+| Método | Ruta Gateway | Destino / Orquestación | Autenticación / RBAC | Resiliencia / Política |
+|---|---|---|---|---|
+| `GET` | `/health` | Handler local Gateway | Pública | Disponibilidad de contenedor |
+| `GET` | `/metrics` | Handler local Gateway | Pública / Monitor | Formato texto Prometheus |
+| `POST` | `/auth/token` | Módulo Auth ERP | Pública | Generación JWT HS256 |
+| `POST` | `/auth/usuarios` | Módulo Auth ERP | ADMIN | Registro de usuarios |
+| `GET` | `/auth/perfil` | Módulo Auth ERP | Autenticado | Identidad desde claim `sub` |
+| `GET` | `/catalogo/productos` | Módulo Catálogo ERP | Autenticado | Lectura de catálogo activo |
+| `POST` | `/catalogo/productos` | Módulo Catálogo ERP | ADMIN | Mutación con auditoría |
+| `POST` | `/pos/ventas` | Módulo POS ERP | CAJERO / ADMIN | Bloqueo `FOR UPDATE`, Kárdex ACID |
+| `GET` | `/pos/ventas` | Módulo POS ERP | CAJERO / ADMIN | Historial transaccional |
+| `POST` | `/ia/pose/analizar` | Proxy `service-ia:8001` | CLIENTE / ADMIN | Reintento máx 2, Timeout 10s, Background |
+| `GET` | `/ia/perfiles` | Proxy `service-ia:8001` | Autenticado | Filtrado por propietario o ADMIN |
+| `GET` | `/ia/perfiles/{id}` | Proxy `service-ia:8001` | Autenticado | Filtrado por propietario o ADMIN |
+| `GET` | `/ia/perfiles/search` | Proxy `service-ia:8001` | Autenticado | Índice GIN Landmarks, Timeout 10s |
+| `GET` | `/ia/prescripcion/{id}`| Proxy `service-ia:8001` | Autenticado | Motor CART, Gate SQL `stock > 0` |
+| `GET` | `/ia/prescripcion/{id}/estado` | Proxy `service-ia:8001` | Autenticado | Polling de estado de inferencia |
+| `POST`| `/predicciones/reentrenar` | Módulo Predicciones | ADMIN | HTTP 202 Accepted, BackgroundTask |
+| `GET` | `/predicciones/reentrenar/estado`| Módulo Predicciones | ADMIN | Polling de entrenamiento ML |
+| `GET` | `/predicciones/demanda` | Módulo Predicciones | ADMIN | Modelo RF Regresor aprobado |
+| `GET` | `/predicciones/quiebres` | Módulo Predicciones | ADMIN | Modelo RF Clasificador aprobado |
+
+---
+
+## 4. Diagrama de Secuencia de Resiliencia, Retries y Métricas del Gateway
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Cliente as Navegador SPA / Cliente HTTP
+    participant MW as RequestIdAndMetricsMiddleware
+    participant Gateway as API Gateway (FastAPI)
+    participant ResilientClient as resilient_ia_request (Timeout 10s)
+    participant IA as Microservicio IA (Port 8001)
+    participant Metrics as MetricsRegistry (Prometheus)
+
+    Cliente->>MW: HTTP GET /ia/prescripcion/12 (Header opcional X-Request-Id)
+    Note over MW: Extrae X-Request-Id o genera UUID v4<br/>Inicia cronómetro t0
+    MW->>Gateway: Despacha request con context.request_id
+
+    Gateway->>ResilientClient: resilient_ia_request("GET", "/ia/prescripcion/12")
+    Note over ResilientClient: Inyecta X-Internal-Authorization (JWT)<br/>Inyecta X-Request-Id<br/>Deadline global: t0 + 10.0s
+
+    ResilientClient->>IA: Intento 1: GET http://service-ia:8001/ia/prescripcion/12
+    IA-->>ResilientClient: 500 Internal Server Error (Fallo temporal)
+    Note over ResilientClient: Captura error 5xx<br/>Registra retry en métricas<br/>Backoff exponencial: sleep(0.05s)
+
+    ResilientClient->>IA: Intento 2 (Reintento): GET /ia/prescripcion/12
+    IA-->>ResilientClient: 200 OK (Prescripción generada)
+    ResilientClient-->>Gateway: HTTP 200 con payload
+
+    Gateway-->>MW: Response 200 OK
+    Note over MW: Calcula duración = perf_counter() - t0<br/>Inyecta Header X-Request-Id<br/>Registra duración en histograma Prometheus
+    MW->>Metrics: record_request("GET", "/ia/prescripcion/12", 200, duracion)
+    MW-->>Cliente: 200 OK (Header X-Request-Id, Payload)
+```

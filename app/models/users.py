@@ -22,6 +22,12 @@ class Usuario(Base):
     apellidos: Mapped[str] = mapped_column(String(100), nullable=False)
     email: Mapped[str] = mapped_column(String(150), unique=True, nullable=False)
     hash_contrasena: Mapped[str] = mapped_column(String(255), nullable=False)
+    esta_verificado: Mapped[bool] = mapped_column(default=True, nullable=False)
+    codigo_verificacion: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)
+    codigo_verificacion_expira: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    codigo_recuperacion: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)
+    codigo_recuperacion_expira: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    objetivo: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)
     fecha_creacion: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     rol: Mapped["RolSistema"] = relationship("RolSistema", back_populates="usuarios", lazy="selectin")

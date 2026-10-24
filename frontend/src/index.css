@@ -1,223 +1,407 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary-container: #f2e500;
-  --color-on-primary-container: #6b6500;
-  --color-primary-fixed: #f4e706;
-  --color-primary-fixed-dim: #d6ca00;
-  --color-surface: #131313;
-  --color-surface-elevation: #0D0D0D;
-  --color-surface-container-high: #2a2a2a;
-  --color-surface-variant: #353535;
-  --color-charcoal-gray: #1A1A1A;
-  --color-on-surface-variant: #ccc7ab;
-  --color-on-background: #e2e2e2;
+  --color-primary-container: #e8dc00;
+  --color-on-primary-container: #5c5700;
+  --color-surface: #111111;
+  --color-surface-elevation: #0c0c0c;
+  --color-surface-container-high: #181818;
+  --color-surface-variant: #222222;
+  --color-charcoal-gray: #141414;
+  --color-on-surface-variant: #a3a3a3;
+  --color-on-background: #f5f5f5;
+
+  /* Fonts */
   --font-display: 'Anybody', sans-serif;
-  --font-headline: 'Anybody', sans-serif;
-  --font-body: 'Hanken Grotesk', sans-serif;
+  --font-headline: 'Inter', sans-serif;
+  --font-body: 'Inter', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 }
 
 :root {
-  /* Emil Kowalski Custom Easing Curves */
-  --ease-out-emil: cubic-bezier(0.23, 1, 0.32, 1);
-  --ease-in-out-emil: cubic-bezier(0.77, 0, 0.175, 1);
-  --ease-drawer-emil: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --sp-bg: #070707;
+  --sp-surface-1: #0c0c0c;
+  --sp-surface-2: #111111;
+  --sp-surface-3: #171717;
+  --sp-border: rgba(255, 255, 255, 0.07);
+  --sp-border-strong: rgba(255, 255, 255, 0.12);
+  --sp-border-hover: rgba(255, 255, 255, 0.16);
+  --sp-text: #f5f5f5;
+  --sp-text-secondary: #a3a3a3;
+  --sp-text-muted: #6f6f6f;
+  --sp-accent: #e8dc00;
+  --sp-accent-hover: #f4e900;
+  --sp-accent-soft: rgba(232, 220, 0, 0.08);
+  --sp-success: #5ee2a0;
+  --sp-danger: #ef4444;
+  --sp-radius-sm: 6px;
+  --sp-radius-md: 10px;
+  --sp-radius-lg: 14px;
+  --sp-shadow-card: 0 16px 40px -24px rgba(0, 0, 0, 0.9);
+  color-scheme: dark;
 }
 
 @layer base {
+  html {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100%;
+  }
+
   body {
-    background-color: #080808;
-    color: #e2e2e2;
-    font-family: 'Hanken Grotesk', sans-serif;
+    background:
+      radial-gradient(ellipse 90% 38% at 50% -18%, rgba(232, 220, 0, 0.065), transparent 68%),
+      var(--sp-bg);
+    color: var(--sp-text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     min-height: 100vh;
     overflow-x: hidden;
-    selection-background-color: #f2e500;
-    selection-color: #000000;
+    width: 100%;
+    max-width: 100%;
   }
 
   ::selection {
-    background-color: #f2e500;
-    color: #000000;
+    background-color: rgba(232, 220, 0, 0.25);
+    color: #ffffff;
+  }
+
+  :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+    outline: 2px solid var(--sp-accent);
+    outline-offset: 3px;
   }
 }
 
-/* Animations & Micro-interactions */
-@keyframes pulseGlow {
-  0%, 100% {
-    opacity: 0.35;
-    transform: scale(1);
-    filter: drop-shadow(0 0 15px rgba(242, 229, 0, 0.3));
-  }
-  50% {
-    opacity: 0.7;
-    transform: scale(1.03);
-    filter: drop-shadow(0 0 25px rgba(242, 229, 0, 0.6));
-  }
+/* ── Global Rounded Defaults ── */
+button,
+input,
+select,
+textarea {
+  border-radius: var(--sp-radius-md);
 }
 
-@keyframes floatSlow {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
+input,
+select,
+textarea {
+  min-height: 2.75rem;
 }
 
-@keyframes shimmerEffect {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
+/* ── Standardized Hierarchy Buttons ── */
 
-@keyframes modalScaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes cardCascadeFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-pulse-glow {
-  animation: pulseGlow 4s ease-in-out infinite;
-}
-
-.animate-float-slow {
-  animation: floatSlow 6s ease-in-out infinite;
-}
-
-.animate-shimmer {
-  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(242,229,0,0.15) 50%, rgba(255,255,255,0) 100%);
-  background-size: 200% 100%;
-  animation: shimmerEffect 2.5s infinite;
-}
-
-.modal-enter {
-  animation: modalScaleIn 220ms var(--ease-out-emil) forwards;
-}
-
-/* Luxury Glassmorphism & Cards */
-.spartan-glass {
-  background: rgba(13, 13, 13, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  transition: transform 220ms var(--ease-out-emil), border-color 220ms var(--ease-out-emil), box-shadow 220ms var(--ease-out-emil);
-}
-
-.spartan-glass:hover {
-  border-color: rgba(242, 229, 0, 0.45);
-  box-shadow: 0 12px 35px -10px rgba(0, 0, 0, 0.85), 0 0 20px -2px rgba(242, 229, 0, 0.12);
-  transform: translateY(-3px);
-}
-
-/* Emil Kowalski Button Principles: Tactile scale(0.97) feedback, specific transitions */
 .spartan-btn-primary {
-  background-color: #f2e500;
-  color: #000000;
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 900;
-  text-transform: uppercase;
-  transition: transform 160ms var(--ease-out-emil), background-color 160ms var(--ease-out-emil), box-shadow 160ms var(--ease-out-emil);
-  position: relative;
-  overflow: hidden;
+  min-height: 2.6rem;
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+  border-radius: var(--sp-radius-md);
+  background-color: #e8dc00;
+  color: #070707;
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 0.875rem;
+  letter-spacing: 0.01em;
+  border: 1px solid transparent;
+  transition: background-color 160ms ease, transform 100ms ease, box-shadow 160ms ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
 }
 
 .spartan-btn-primary:hover {
-  background-color: #ffffff;
-  box-shadow: 0 0 25px rgba(242, 229, 0, 0.45);
-  transform: translateY(-2px);
+  background-color: #f4e900;
+  box-shadow: 0 10px 22px -12px rgba(232, 220, 0, 0.54);
 }
 
 .spartan-btn-primary:active {
-  transform: scale(0.97) translateY(0px);
+  transform: scale(0.97);
 }
 
 .spartan-btn-secondary {
-  background-color: #141414;
-  color: #ccc7ab;
-  border: 1px solid #2a2a2a;
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 700;
-  text-transform: uppercase;
-  transition: transform 160ms var(--ease-out-emil), background-color 160ms var(--ease-out-emil), border-color 160ms var(--ease-out-emil), color 160ms var(--ease-out-emil);
+  min-height: 2.6rem;
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+  border-radius: var(--sp-radius-md);
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #f5f5f5;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 0.875rem;
+  letter-spacing: 0.01em;
+  transition: border-color 160ms ease, color 160ms ease, background-color 160ms ease, transform 100ms ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
 }
 
 .spartan-btn-secondary:hover {
-  background-color: #f2e500;
-  color: #000000;
-  border-color: #f2e500;
+  border-color: rgba(255, 255, 255, 0.16);
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
 }
 
 .spartan-btn-secondary:active {
   transform: scale(0.97);
 }
 
-/* Tactile interaction for general pressable elements */
+.spartan-btn-ghost {
+  min-height: 2.6rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  border-radius: var(--sp-radius-md);
+  background-color: transparent;
+  color: #a3a3a3;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: color 160ms ease, background-color 160ms ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.spartan-btn-ghost:hover {
+  color: #f5f5f5;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* ── Sidebar Active Item Token ── */
+.spartan-nav-active {
+  background-color: rgba(232, 220, 0, 0.08) !important;
+  color: #e8dc00 !important;
+  box-shadow: inset 2px 0 0 #e8dc00 !important;
+  font-weight: 600 !important;
+}
+
+/* ── Micro-interactions ── */
+
 .interactive-press {
-  transition: transform 160ms var(--ease-out-emil);
+  transition: transform 120ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 .interactive-press:active {
   transform: scale(0.97);
 }
 
-/* Stagger card animation for catalog */
+.card-interactive {
+  transition: transform 260ms cubic-bezier(0.23, 1, 0.32, 1),
+              border-color 200ms ease,
+              box-shadow 260ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.card-interactive:hover {
+  transform: translateY(-2px);
+  border-color: #e8dc00;
+  box-shadow: var(--sp-shadow-card);
+}
+
+.card-interactive:active {
+  transform: translateY(-2px) scale(0.99);
+}
+
+@keyframes modalScaleIn {
+  from { opacity: 0; transform: scale(0.96) translateY(6px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-enter {
+  animation: modalScaleIn 220ms var(--ease-out) forwards;
+}
+
+@keyframes cardFadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 .stagger-card {
-  animation: cardCascadeFadeIn 280ms var(--ease-out-emil) both;
+  animation: cardFadeIn 280ms var(--ease-out) both;
 }
 
-/* Ambient Radial Backgrounds */
-.bg-spartan-radial {
-  background: radial-gradient(circle at 50% 0%, rgba(242, 229, 0, 0.08) 0%, rgba(13, 13, 13, 0) 65%);
+@keyframes ambientPulse {
+  0%, 100% { opacity: 0.2; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(1.08); }
 }
 
-.bg-spartan-card-gradient {
-  background: linear-gradient(180deg, rgba(20, 20, 20, 0.9) 0%, rgba(10, 10, 10, 0.95) 100%);
+.animate-ambient {
+  animation: ambientPulse 7s ease-in-out infinite;
 }
 
-/* Image Vignette Overlay */
-.img-vignette {
-  position: relative;
+/* ══════════════════════════════════════════════════════════════════════════
+   SPARTAN GLASSMORPHISM DESIGN SYSTEM — TRUE GLASS TOKENS
+   Principles:
+     1. Semi-transparent background (NEVER fully opaque)
+     2. Strong backdrop-filter blur + saturation
+     3. Inner refraction highlight (inset top border glow)
+     4. Layered depth shadows with color bleed
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.spartan-glass {
+  background: linear-gradient(
+    135deg,
+    rgba(24, 24, 24, 0.55) 0%,
+    rgba(10, 10, 10, 0.65) 100%
+  );
+  backdrop-filter: blur(14px) saturate(130%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+  border: 1px solid var(--sp-border-strong);
+  box-shadow: var(--sp-shadow-card), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  border-radius: var(--sp-radius-lg);
 }
 
-.img-vignette::after {
-  content: '';
+.spartan-glass-subtle {
+  background: rgba(18, 18, 18, 0.42);
+  backdrop-filter: blur(10px) saturate(125%);
+  -webkit-backdrop-filter: blur(10px) saturate(125%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 8px 32px -8px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
+}
+
+.spartan-glass-card {
+  background: linear-gradient(
+    145deg,
+    rgba(22, 22, 22, 0.48) 0%,
+    rgba(8, 8, 8, 0.58) 100%
+  );
+  backdrop-filter: blur(8px) saturate(115%);
+  -webkit-backdrop-filter: blur(8px) saturate(115%);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow:
+    0 10px 36px -6px rgba(0, 0, 0, 0.5),
+    0 0 0 0.5px rgba(255, 255, 255, 0.04),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.14);
+  border-radius: 1rem;
+  transition: transform 260ms cubic-bezier(0.23, 1, 0.32, 1),
+              border-color 200ms ease,
+              box-shadow 260ms cubic-bezier(0.23, 1, 0.32, 1),
+              background 260ms ease;
+}
+
+.spartan-glass-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(242, 229, 0, 0.6);
+  background: linear-gradient(
+    145deg,
+    rgba(26, 26, 26, 0.55) 0%,
+    rgba(12, 12, 12, 0.65) 100%
+  );
+  box-shadow: var(--sp-shadow-card), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.spartan-glass-nav {
+  background: rgba(8, 8, 8, 0.82);
+  backdrop-filter: blur(10px) saturate(115%);
+  -webkit-backdrop-filter: blur(10px) saturate(115%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 8px 24px -18px rgba(0, 0, 0, 0.9);
+}
+
+.spartan-glass-input {
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  color: #ffffff;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+
+.spartan-glass-input:focus {
+  border-color: #e8dc00;
+  background: rgba(0, 0, 0, 0.6);
+  box-shadow:
+    0 0 20px -2px rgba(232, 220, 0, 0.25),
+    0 0 0 3px rgba(232, 220, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.spartan-glass-pill {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.spartan-ambient-glow {
   position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 45%, rgba(8, 8, 8, 0.95) 100%);
   pointer-events: none;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(232, 220, 0, 0.14) 0%, rgba(232, 220, 0, 0.03) 50%, rgba(0, 0, 0, 0) 75%);
+  filter: blur(90px);
+  z-index: 0;
 }
 
-/* Custom scrollbar styling */
+/* Professional workspace primitives: calm surfaces, clear hierarchy, predictable data. */
+.spartan-workspace {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.016), transparent 16rem),
+    var(--sp-bg);
+}
+
+.spartan-surface {
+  background: rgba(17, 17, 17, 0.82);
+  border: 1px solid var(--sp-border);
+  border-radius: var(--sp-radius-lg);
+  box-shadow: 0 18px 42px -32px rgba(0, 0, 0, 0.95);
+}
+
+.spartan-status-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: var(--sp-success);
+  box-shadow: 0 0 0 3px rgba(94, 226, 160, 0.12);
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Scrollbar ── */
+
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
   background: #080808;
 }
 ::-webkit-scrollbar-thumb {
   background: #1f1f1f;
-  border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #f2e500;
+  background: #e8dc00;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-ambient,
+  .animate-pulse,
+  .animate-spin,
+  .stagger-card,
+  .modal-enter {
+    animation: none !important;
+  }
+
+  .card-interactive,
+  .spartan-glass-card,
+  .interactive-press,
+  .spartan-btn-primary,
+  .spartan-btn-secondary {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .card-interactive:hover,
+  .spartan-glass-card:hover {
+    transform: none;
+  }
 }

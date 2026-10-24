@@ -44,21 +44,25 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-md">
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          className="w-full max-w-md bg-[#0D0D0D] border border-[#1A1A1A] p-6 shadow-2xl relative"
+          initial={{ opacity: 0, scale: 0.95, y: 12 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 12 }}
+          className="w-full max-w-md spartan-glass p-6 sm:p-8 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] relative rounded-3xl border-white/15"
         >
+          {/* Top Gold Accent */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-[#e8dc00]" />
+
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-[#737373] hover:text-white cursor-pointer"
+            aria-label="Cerrar modal de creación de producto"
+            className="absolute top-4 right-4 p-2 text-white/70 hover:text-white transition-colors cursor-pointer spartan-glass-pill rounded-full hover:border-[#e8dc00]/60 shadow-md"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </button>
           <h3 className="font-['Anybody'] text-xl font-bold text-white uppercase tracking-tight mb-4 flex items-center gap-2">
-            <Plus className="h-5 w-5 text-[#f2e500]" />
+            <Plus className="h-5 w-5 text-[#e8dc00]" />
             <span>Registrar Nuevo Suplemento</span>
           </h3>
 
@@ -71,7 +75,7 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
                 placeholder="EJ. SKU-PROT-099"
                 value={sku}
                 onChange={(e) => setSku(e.target.value)}
-                className="w-full bg-black border border-[#2a2a2a] focus:border-[#f2e500] text-white p-2.5 outline-none uppercase"
+                className="w-full spartan-glass-input p-2.5 outline-none uppercase rounded-xl transition-colors"
               />
             </div>
 
@@ -83,7 +87,7 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
                 placeholder="EJ. ISOLATE WHEY 5LB"
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
-                className="w-full bg-black border border-[#2a2a2a] focus:border-[#f2e500] text-white p-2.5 outline-none uppercase"
+                className="w-full spartan-glass-input p-2.5 outline-none uppercase rounded-xl transition-colors"
               />
             </div>
 
@@ -92,10 +96,10 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
               <select
                 value={categoriaId}
                 onChange={(e) => setCategoriaId(parseInt(e.target.value, 10))}
-                className="w-full bg-black border border-[#2a2a2a] focus:border-[#f2e500] text-white p-2.5 outline-none uppercase"
+                className="w-full spartan-glass-input p-2.5 outline-none uppercase rounded-xl transition-colors cursor-pointer"
               >
                 {categorias.map((c) => (
-                  <option key={c.id_categoria} value={c.id_categoria}>
+                  <option key={c.id_categoria} value={c.id_categoria} className="bg-zinc-900 text-white dark:bg-zinc-900">
                     {c.nombre_categoria}
                   </option>
                 ))}
@@ -112,7 +116,7 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
                   placeholder="350.00"
                   value={precio}
                   onChange={(e) => setPrecio(e.target.value)}
-                  className="w-full bg-black border border-[#2a2a2a] focus:border-[#f2e500] text-white p-2.5 outline-none"
+                  className="w-full spartan-glass-input p-2.5 outline-none rounded-xl transition-colors"
                 />
               </div>
               <div>
@@ -121,7 +125,7 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
                   type="number"
                   value={stock}
                   onChange={(e) => setStock(e.target.value)}
-                  className="w-full bg-black border border-[#2a2a2a] focus:border-[#f2e500] text-white p-2.5 outline-none"
+                  className="w-full spartan-glass-input p-2.5 outline-none rounded-xl transition-colors"
                 />
               </div>
               <div>
@@ -130,7 +134,7 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
                   type="number"
                   value={stockSeguridad}
                   onChange={(e) => setStockSeguridad(e.target.value)}
-                  className="w-full bg-black border border-[#2a2a2a] focus:border-[#f2e500] text-white p-2.5 outline-none"
+                  className="w-full spartan-glass-input p-2.5 outline-none rounded-xl transition-colors"
                 />
               </div>
             </div>
@@ -139,11 +143,11 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="spartan-btn-secondary px-4 py-2 cursor-pointer"
+                className="spartan-btn-secondary px-5 py-2.5 cursor-pointer rounded-xl"
               >
                 Cancelar
               </button>
-              <button type="submit" className="spartan-btn-primary px-5 py-2 cursor-pointer">
+              <button type="submit" className="spartan-btn-primary px-6 py-2.5 cursor-pointer rounded-xl shadow-lg">
                 Guardar Producto
               </button>
             </div>

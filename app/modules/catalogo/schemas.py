@@ -33,7 +33,6 @@ class ProductoUpdate(BaseModel):
     codigo_sku: Optional[str] = None
     nombre_producto: Optional[str] = None
     precio_unitario: Optional[float] = Field(default=None, gt=0)
-    stock_actual: Optional[int] = Field(default=None, ge=0)
     stock_seguridad: Optional[int] = Field(default=None, ge=0)
     estado_activo: Optional[bool] = None
     imagen_url: Optional[str] = None

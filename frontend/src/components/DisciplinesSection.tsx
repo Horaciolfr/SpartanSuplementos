@@ -36,13 +36,13 @@ const disciplinesData: DisciplineItem[] = [
     title: 'ALTA INTENSIDAD (HIT)',
     targetAudience: 'Hipertrofia Funcional & Sobrecarga Progresiva',
     quote:
-      'El estímulo biológico óptimo no proviene de horas vacías en el gimnasio, sino de llevar cada serie al límite de máxima intensidad neuromuscular.',
-    author: 'Metodología de Alta Intensidad (HIT)',
+      'La intensidad se trabaja con técnica, progresión y recuperación suficiente; el volumen adecuado depende de cada persona.',
+    author: 'Enfoque de alta intensidad',
     image: '/disciplinas/alta_intensidad.jpg',
     description:
-      'La metodología de Alta Intensidad demuestra que la tensión mecánica extrema, la sobrecarga progresiva y la recuperación sistémica profunda maximizan la síntesis proteica sin fatiga residual.',
+      'Una propuesta de trabajo con series exigentes, progresión gradual y descansos planificados para quienes ya dominan la técnica de los ejercicios.',
     supplementTip:
-      'Sinergia recomendada: Creatina Creapure 100% + Pre-entreno de alta concentración con Beta-Alanina + Proteína Aislada IsoWhey.',
+      'Productos que suelen consultar quienes entrenan fuerza: creatina, proteína y opciones de preentrenamiento. Revisa sus indicaciones antes de usarlos.',
     keyExercises: [
       'Press de Banca inclinado con pausa isométrica',
       'Sentadilla Hack guiada al fallo concéntrico',
@@ -57,13 +57,13 @@ const disciplinesData: DisciplineItem[] = [
     title: 'VOLUMEN ESTRUCTURADO',
     targetAudience: 'Desarrollo Estético Proporcional & Simetría',
     quote:
-      'La resistencia progresiva y la simetría muscular se forjan mediante cadencias controladas, volumen estructurado y tensión continua en todo el rango articular.',
-    author: 'Metodología de Volumen y Simetría',
+      'El progreso sostenible combina una carga que puedas controlar, una técnica consistente y tiempo de recuperación.',
+    author: 'Enfoque de volumen estructurado',
     image: '/disciplinas/volumen_estructurado.jpg',
     description:
-      'Entrenamiento orientado a la hipertrofia miofibrilar y sarcoplásmica: conexión neuromuscular estricta, densidad controlada y partición de macronutrientes para soporte anabólico constante.',
+      'Rutinas de volumen con selección de ejercicios, repeticiones y pausas organizadas para favorecer una práctica constante.',
     supplementTip:
-      'Sinergia recomendada: NitroTech Whey Gold + Multivitamínico de alto espectro + Complejo Glutamina y BCAAs.',
+      'Opciones frecuentes para esta meta: proteína, creatina y suplementos que complementen una alimentación planificada.',
     keyExercises: [
       'Press Militar estricto con barra olímpica',
       'Superserie de Pecho y Espalda (Press Plano + Remo)',
@@ -78,13 +78,13 @@ const disciplinesData: DisciplineItem[] = [
     title: 'FUERZA PURA & POWERLIFTING',
     targetAudience: 'Levantadores de Fuerza, Rugby & Deportes de Contacto',
     quote:
-      'La barra cargada no acepta excusas ni titubeos. Cada kilogramo despegado de la tarima es una conquista técnica de la mente sobre la gravedad.',
-    author: 'Metodología de Fuerza Pura',
+      'La fuerza se construye con técnica repetible, progresión de carga y una ejecución segura en cada levantamiento.',
+    author: 'Enfoque de fuerza',
     image: '/disciplinas/powerlifting_deadlift.jpg',
     description:
-      'Dominio de los tres levantamientos fundamentales: Sentadilla, Press de Banca y Peso Muerto. Fuerza neural absoluta que transfiere potencia a cualquier disciplina atlética.',
+      'Programa centrado en sentadilla, press de banca y peso muerto, con atención a la técnica y a la progresión individual.',
     supplementTip:
-      'Sinergia recomendada: Creatina Monohidratada 120 Servings + Magnesio Bisglicinato + Electrolitos intra-sesión.',
+      'Para sesiones intensas, algunas personas consideran creatina, hidratación y electrolitos según su contexto deportivo.',
     keyExercises: [
       'Peso Muerto convencional con bloqueo dorsal',
       'Sentadilla Low-Bar con respiración diafragmática',
@@ -99,13 +99,13 @@ const disciplinesData: DisciplineItem[] = [
     title: 'DOMINIO CORPORAL TOTAL',
     targetAudience: 'Jóvenes y Adultos — Fuerza Relativa, Equilibrio y Core',
     quote:
-      'Dominar tu propio peso contra la gravedad requiere ligamentos de acero, tensión isométrica milimétrica y paciencia infinita.',
-    author: 'Movimiento Street Workout Bolivia',
+      'El control corporal mejora con práctica progresiva, una base de fuerza y paciencia para consolidar cada movimiento.',
+    author: 'Enfoque de calistenia',
     image: '/disciplinas/calistenia_planche.jpg',
     description:
-      'La calistenia forja una fuerza funcional extraordinaria utilizando barras fijas, anillas y el suelo, protegiendo las articulaciones y construyendo un core blindado.',
+      'Entrenamiento con peso corporal, barras y anillas que prioriza control, movilidad y progresiones acordes a la experiencia.',
     supplementTip:
-      'Sinergia recomendada: Colágeno Articular Tipo II con Vitamina C + Proteína Microfiltrada + Aminoácidos EAAs.',
+      'Una alimentación suficiente y una recuperación adecuada son la base. Los suplementos deben elegirse según necesidad y tolerancia individual.',
     keyExercises: [
       'Progresión a Full Planche y Straddle',
       'Muscle-Ups explosivos en barra fija',
@@ -120,13 +120,13 @@ const disciplinesData: DisciplineItem[] = [
     title: 'CONDICIONAMIENTO & AGILIDAD',
     targetAudience: 'Hombres y Mujeres — Tonificación, Quema Grasa y Resistencia',
     quote:
-      'La verdadera agilidad atlética combina capacidad cardiovascular continua, core reactivo y una composición corporal magra y funcional.',
-    author: 'Spartan Conditioning Gym',
+      'El acondicionamiento mejora cuando el esfuerzo, la técnica y el descanso se ajustan al nivel de cada persona.',
+    author: 'Enfoque de acondicionamiento',
     image: '/disciplinas/fitness_tonificacion.jpg',
     description:
-      'Entrenamiento de conditioning y resistencia metabólica que acelera el consumo de oxígeno post-ejercicio (EPOC), fortaleciendo la salud cardiovascular y la definición muscular.',
+      'Sesiones que combinan movilidad, trabajo cardiovascular y fuerza para desarrollar resistencia y agilidad de forma progresiva.',
     supplementTip:
-      'Sinergia recomendada: Termogénico Lipo-6 Black Ultra + L-Carnitina Líquida + Proteína Aislada Cero Carbohidratos.',
+      'Consulta el catálogo para conocer opciones de hidratación y proteína que se adapten a tus hábitos y objetivos.',
     keyExercises: [
       'Intervalos HIIT de alta densidad metabólica',
       'Kettlebell Swings y Thrusters con mancuernas',
@@ -141,13 +141,13 @@ const disciplinesData: DisciplineItem[] = [
     title: 'VITALIDAD SIN EDAD',
     targetAudience: 'Adultos 50+ y Tercera Edad — Movilidad, Autonomía y Densidad Ósea',
     quote:
-      'La masa muscular es el mayor seguro de longevidad y autonomía. No envejecemos para dejar de movernos; dejamos de entrenar y por eso envejecemos.',
-    author: 'Programa Salud Activa Spartan',
+      'La actividad física adaptada puede formar parte de una vida activa cuando se practica con acompañamiento y progresión adecuada.',
+    author: 'Enfoque de movilidad y fuerza',
     image: '/disciplinas/longevidad_fuerza.jpg',
     description:
-      'El entrenamiento de fuerza adaptado para personas mayores previene la sarcopenia, mejora la densidad mineral ósea, el equilibrio postural y asegura independencia plena.',
+      'Rutinas de movilidad, equilibrio y fuerza adaptada. Para iniciar o modificar un programa, conviene contar con orientación profesional.',
     supplementTip:
-      'Sinergia recomendada: Omega-3 Concentrado EPA/DHA + Vitamina D3/K2 + Proteína de rápida asimilación articular.',
+      'La elección de suplementos para esta etapa debe realizarse con asesoramiento profesional, especialmente si existen tratamientos o condiciones previas.',
     keyExercises: [
       'Sentadilla a cajón (Box Squats) con apoyo seguro',
       'Remo sentado en polea para soporte escapular',
@@ -186,24 +186,17 @@ export const DisciplinesSection: React.FC = () => {
         {/* Section Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
           <div>
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-[#141414]/80 backdrop-blur-sm border border-white/10 text-[#e8dc00] font-['JetBrains_Mono'] text-[11px] font-bold uppercase tracking-widest mb-3 rounded-full shadow-sm">
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>Filosofía & Líneas de Entrenamiento</span>
-            </div>
             <h2 className="font-['Anybody'] text-3xl sm:text-4xl lg:text-5xl font-black uppercase text-white tracking-tight leading-tight">
               Domina Tu <span className="text-[#e8dc00]">Disciplina</span>
             </h2>
             <p className="font-sans text-sm sm:text-base text-zinc-300 mt-2 max-w-2xl font-normal leading-relaxed">
-              Metodologías de entrenamiento validadas por la ciencia deportiva, forjadas con rigor biomecánico y sinergia nutricional verificada.
+              Explora rutas de entrenamiento y ejercicios de referencia para orientar tu práctica según tu objetivo.
             </p>
           </div>
 
           <div className="hidden lg:block text-right">
-            <span className="font-['JetBrains_Mono'] text-[11px] text-[#737373] uppercase block mb-1">
-              Spartan Training System
-            </span>
             <span className="font-['JetBrains_Mono'] text-xs font-bold text-white uppercase tracking-wider">
-              {disciplinesData.length} Módulos Disponibles
+              {disciplinesData.length} rutas de entrenamiento
             </span>
           </div>
         </div>
@@ -217,6 +210,7 @@ export const DisciplinesSection: React.FC = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
+                aria-pressed={isActive}
                 className={`relative px-4 py-2.5 text-xs font-['JetBrains_Mono'] font-bold uppercase tracking-wider transition-colors shrink-0 flex items-center gap-2 cursor-pointer rounded-xl overflow-hidden ${
                   isActive ? 'text-black' : 'text-zinc-400 hover:text-white'
                 }`}
@@ -242,12 +236,13 @@ export const DisciplinesSection: React.FC = () => {
         >
           <AnimatePresence mode="popLayout">
             {filteredItems.map((item, idx) => (
-              <motion.div
+              <motion.button
+                type="button"
                 key={item.id}
                 layout
                 role="button"
                 tabIndex={0}
-                aria-label={`Ver ficha técnica de ${item.title}`}
+                aria-label={`Ver guía de ${item.title}`}
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
@@ -307,7 +302,7 @@ export const DisciplinesSection: React.FC = () => {
                     <ChevronRight className="h-3.5 w-3.5 stroke-[2.5] group-hover:translate-x-1 transition-transform duration-200" />
                   </span>
                 </div>
-              </motion.div>
+              </motion.button>
             ))}
           </AnimatePresence>
         </motion.div>
@@ -330,7 +325,7 @@ export const DisciplinesSection: React.FC = () => {
               {/* Close Button */}
               <button
                 onClick={() => setSelectedDiscipline(null)}
-                aria-label="Cerrar ficha técnica"
+                aria-label="Cerrar guía de entrenamiento"
                 className="absolute top-4 right-4 z-30 p-2 text-white/70 hover:text-white transition-colors cursor-pointer bg-[#171717] rounded-full border border-white/10 hover:border-[#e8dc00]/60 shadow-md"
               >
                 <X className="h-5 w-5" />

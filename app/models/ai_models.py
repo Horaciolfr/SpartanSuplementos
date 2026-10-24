@@ -10,7 +10,8 @@ class VersionModeloIA(Base):
     __table_args__ = {'schema': 'ia'}
 
     id_version: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    hash_archivo: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    algoritmo: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    hash_archivo: Mapped[str] = mapped_column(String(255), nullable=False)
     metric_accuracy: Mapped[Optional[float]] = mapped_column(Numeric(5, 4), nullable=True)
     metric_rmse: Mapped[Optional[float]] = mapped_column(Numeric(5, 4), nullable=True)
     aprobado_produccion: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
@@ -37,7 +38,7 @@ class PerfilBiometrico(Base):
     id_usuario: Mapped[int] = mapped_column(ForeignKey('erp.usuario.id_usuario'), nullable=False)
     id_somatotipo: Mapped[Optional[int]] = mapped_column(ForeignKey('parametros.catalogo_somatotipo.id_somatotipo'), nullable=True)
     coordenadas_espaciales = mapped_column(JSONB, nullable=False)
-    precision_captura: Mapped[Optional[float]] = mapped_column(Numeric(5, 4), nullable=True)
+    precision_captura: Mapped[Optional[float]] = mapped_column(Numeric(8, 6), nullable=True)
     estatura_cm: Mapped[Optional[float]] = mapped_column(Numeric(5, 2), nullable=True)
     peso_kg: Mapped[Optional[float]] = mapped_column(Numeric(5, 2), nullable=True)
     fecha_captura: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)

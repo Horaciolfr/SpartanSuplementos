@@ -3,7 +3,10 @@ export const getErrorMessage = (err: any, fallback = 'Ha ocurrido un error en la
 
   const data = err.response?.data;
   if (!data) {
-    return err.message || fallback;
+    // Los errores de red del cliente (por ejemplo, "Network Error") no ayudan a
+    // la persona usuaria ni ofrecen una acción clara. Cada pantalla aporta su
+    // propio mensaje de recuperación mediante el fallback.
+    return fallback;
   }
 
   const detail = data.detail;

@@ -1,0 +1,48 @@
+{
+  "metrics": {
+    "pos_multi_sku_duration": {
+      "values": {
+        "avg": 179.98,
+        "min": 22.68,
+        "med": 66.87,
+        "max": 1629.02,
+        "p(90)": 475.08,
+        "p(95)": 726.46,
+        "p(99)": 1205.10
+      }
+    },
+    "mixed_duration": {
+      "values": {
+        "avg": 217.08,
+        "min": 8.58,
+        "med": 186.98,
+        "max": 1135.84,
+        "p(90)": 466.24,
+        "p(95)": 570.13,
+        "p(99)": 890.45
+      }
+    },
+    "pose_capture_duration": {
+      "values": {
+        "avg": 482.46,
+        "min": 81.27,
+        "med": 186.74,
+        "max": 7696.59,
+        "p(90)": 530.63,
+        "p(95)": 741.83,
+        "p(99)": 1450.20
+      }
+    },
+    "unexpected_errors": {
+      "values": {
+        "rate": 0.0
+      }
+    },
+    "http_reqs": {
+      "values": {
+        "count": 4087,
+        "rate": 34.12
+      }
+    }
+  }
+}

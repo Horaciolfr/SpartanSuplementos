@@ -2,7 +2,7 @@ import uuid
 import re
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.orm import selectinload
 from sqlalchemy.exc import DBAPIError
 
@@ -12,8 +12,9 @@ from app.models.transactions import Venta, DetalleVenta
 from app.models.kardex import KardexFisico
 from app.models.users import Usuario
 from app.modules.pos.schemas import (
-    VentaCreateRequest, VentaResponse, DetalleVentaOut, KardexMovimientoOut
+    VentaCreateRequest, VentaResponse, DetalleVentaOut, KardexMovimientoOut, KardexValorizadoOut, ClienteOut
 )
+from app.modules.pos.valorizacion_service import ValorizacionService
 
 router = APIRouter(tags=["Punto de Venta (POS) & Kárdex"])
 
@@ -23,9 +24,15 @@ async def crear_venta_pos(
     db: AsyncSession = Depends(get_db),
     current_user: Usuario = Depends(require_roles("CAJERO", "ADMINISTRADOR"))
 ) -> VentaResponse:
-    # 1. Obtener los productos en memoria para validación previa de existencia
+    # 1. Obtener los productos en orden canónico con bloqueo exclusivo FOR UPDATE para eliminar deadlocks
     prod_ids = [it.id_producto for it in payload.items]
-    stmt = select(Producto).where(Producto.id_producto.in_(prod_ids))
+    prod_ids_ordenados = sorted(set(prod_ids))
+    stmt = (
+        select(Producto)
+        .where(Producto.id_producto.in_(prod_ids_ordenados))
+        .order_by(Producto.id_producto)
+        .with_for_update()
+    )
     res = await db.execute(stmt)
     productos_map = {p.id_producto: p for p in res.scalars().all()}
     productos_sku_map = {p.id_producto: p.codigo_sku for p in productos_map.values()}
@@ -84,6 +91,36 @@ async def crear_venta_pos(
         nueva_venta.total_transaccion = total_calculado
         await db.commit()
         await db.refresh(nueva_venta)
+
+        # Conversión de prescripción: empareja con prescripciones abiertas del último perfil (7 días)
+        if nueva_venta.id_cliente:
+            prod_ids = [it.id_producto for it in payload.items]
+            try:
+                stmt_perfil = text("""
+                    SELECT id_perfil
+                    FROM ia.perfil_biometrico
+                    WHERE id_usuario = :id_cliente
+                      AND fecha_captura >= (CURRENT_TIMESTAMP - INTERVAL '7 days')
+                    ORDER BY fecha_captura DESC
+                    LIMIT 1
+                """)
+                res_perfil = await db.execute(stmt_perfil, {"id_cliente": nueva_venta.id_cliente})
+                id_perfil_cliente = res_perfil.scalar_one_or_none()
+                if id_perfil_cliente:
+                    stmt_conv = text("""
+                        UPDATE ia.prescripcion_crossselling
+                        SET id_venta_efectiva = :id_venta
+                        WHERE id_perfil = :id_perfil
+                          AND id_producto = ANY(:ids_prods)
+                          AND id_venta_efectiva IS NULL
+                    """)
+                    await db.execute(
+                        stmt_conv,
+                        {"id_venta": nueva_venta.id_venta, "id_perfil": id_perfil_cliente, "ids_prods": prod_ids}
+                    )
+                    await db.commit()
+            except Exception:
+                pass
 
     except DBAPIError as exc:
         await db.rollback()
@@ -204,4 +241,43 @@ async def get_kardex_producto(
             fecha_registro=k.fecha_registro
         )
         for k in kardex_list
+    ]
+
+@router.get("/kardex/valorizacion/{id_producto}", response_model=KardexValorizadoOut)
+async def get_kardex_valorizado_producto(
+    id_producto: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: Usuario = Depends(require_roles("ADMINISTRADOR"))
+):
+    """
+    Visor de Kárdex Valorizado con Precio Medio Ponderado (PMP).
+    Exclusivo para ADMINISTRADOR.
+    """
+    return await ValorizacionService.obtener_kardex_valorizado_producto(db=db, id_producto=id_producto)
+
+@router.get("/pos/clientes", response_model=list[ClienteOut])
+async def listar_clientes_pos(
+    db: AsyncSession = Depends(get_db),
+    current_user: Usuario = Depends(require_roles("CAJERO", "ADMINISTRADOR"))
+):
+    """
+    Lista de clientes registrados para el selector de caja (POS).
+    Exclusivo para roles CAJERO y ADMINISTRADOR (rol CLIENTE recibe 403 Forbidden).
+    """
+    stmt = (
+        select(Usuario)
+        .where(Usuario.id_rol == 3)
+        .order_by(Usuario.apellidos, Usuario.nombres)
+    )
+    res = await db.execute(stmt)
+    clientes = res.scalars().all()
+    return [
+        ClienteOut(
+            id_usuario=c.id_usuario,
+            nombres=c.nombres,
+            apellidos=c.apellidos,
+            email=c.email,
+            numero_documento=c.numero_documento
+        )
+        for c in clientes
     ]

@@ -1,0 +1,47 @@
+| # | Archivo Origen | SHA-256 | Somatotipo Tag | Objetivo Tag | Código Parseable |
+|---|---|---|---|---|---|
+| 1 | Api morado con pan integral en porción controlada [ECTO·GP].jfif | 9ff8c71f37dc5024da1fefc283c0a9721c51bdabaf9ff955a0b411d294dfa6f3 | ECTO | GP | **No** (sin código) |
+| 2 | Batido mass gainer de avena, leche, maní y plátano [ECT·GP].jfif | cfc2eef9a2140d0d349aed1f94a5535df98669760ba8b9ab4ab56aae18867c35 | ECT | GP | **No** (sin código) |
+| 3 | Bistec de res magra con papa al horno y ensalada [MESO·GM].jfif | 879ddbfca6d3269fcdb42a6db98570668f1cb6f6584caf6aaa1ca762cf5e83a0 | MESO | GM | **No** (sin código) |
+| 4 | Bowl de fruta fresca con granola y mango [ECT·GP].jfif | 472ad8bc315382a15d8db33b8fe2b3e892c069ccf10ad6fb9173e54097063fee | ECT | GP | **No** (sin código) |
+| 5 | Bowl de quinua, pollo grillado y palta [MESO·GM].jfif | 181220ea37f2fcd28048d04cc2814846f4f746b6dcdbee6037820c0f18d96ddd | MESO | GM | **No** (sin código) |
+| 6 | Bowl de yogur con caseína y berries [MESO-ENDO·MANT].jfif | b074a64bf69550f5f296962a5af979970a9ec4e02c15353b7d9c7645de2eaa2d | MESO-ENDO | MANT | **No** (sin código) |
+| 7 | Brochetas de pollo y verduras con papa rústica [MESO·GM].jfif | d5e0a38ae99c7ee89a2038dac755218b6281fad97dc53d7c2a54c0c9d3414147 | MESO | GM | **No** (sin código) |
+| 8 | Ceviche de pescado con camote cocido [ENDO·PP].jfif | 5dba602966e9e1c72b9d48a56e50e84f270067e4c193f76fbfa77fedf4ba807e | ENDO | PP | **No** (sin código) |
+| 9 | Charque de llama magro grillado con quinua [MESO·GM].jfif | b0b831acc5f6aae19fa5621853811f695bdca51adf91a99f964bb0f5f570ded1 | MESO | GM | **No** (sin código) |
+| 10 | Chaufa de quinua con pollo y verduras abundantes [MESO-ENDO·MANT].jfif | 4abcffaec243c69e225f957c611dce4eacdf2eb30f5222c33b00a9959481e54c | MESO-ENDO | MANT | **No** (sin código) |
+| 11 | Chili de pavo con porotos y arroz moderado [MESO-ENDO·MANT].jfif | d439db40fe81407006d6e570b561635b0cc93ec276056c06100dcdc4b85e41bf | MESO-ENDO | MANT | **No** (sin código) |
+| 12 | Churrasco de pollo sin piel con choclo y ensalada [MESO·GM].jfif | a4b675fe79de34286ccc0a43789d4373e9444a4b2d91ca195e975754b0659e70 | MESO | GM | **No** (sin código) |
+| 13 | Crema de verduras con pollo, espesada con papa licuada [ENDO·PP].jfif | 26b3236cee92130c8a7588ecc044806a784342f12f3d00b5f7c32d44a81c424b | ENDO | PP | **No** (sin código) |
+| 14 | Curry verde ligero de pollo y verduras [ENDO·PP].jfif | 5a405b2a8341a42f7fd6c850fda0954bf5ba50bf88520b2f3d2119ba657503ec | ENDO | PP | **No** (sin código) |
+| 15 | Desayuno de quinua mote con huevo y salteado de verduras [MESO·MANT].jfif | c86f4c38c6bfde04b303972af0390306b7b7819dd2951034c23e60aa3af98888 | MESO | MANT | **No** (sin código) |
+| 16 | Ensalada César con pollo grillado y aderezo ligero [MESO·PP].jfif | 1a2c95ad75c8c44f2c050a2a4ba2bcc7f60c93c9e79bc8053da70ac9ff04ba4a | MESO | PP | **No** (sin código) |
+| 17 | Ensalada de atún con porotos blancos [MESO-ENDO·MANT].jfif | fcdfd7173dc4df1814b797587f7525de9fdf4ea1ddcd9553cf01f48079edc205 | MESO-ENDO | MANT | **No** (sin código) |
+| 18 | Ensalada de pollo grillado y palta [MESO·PP].jfif | 1965f5c176d12b452275c3196080197484265f26889ca5009b722e8dd06dec89 | MESO | PP | **No** (sin código) |
+| 19 | Fideos de zucchini con pollo y salsa blanca ligera [ENDO·PP].jfif | d7dcfefb8b81f22e7fba3ac4a927c5bd3656aba420214f121c6e036b41482b93 | ENDO | PP | **No** (sin código) |
+| 20 | Frittata de zapallo y huevo con ensalada verde [ENDO·PP].jfif | 2e8acb78b363e2a3b47a7bb9c73eb2acba3265d4b1939039ea0aff39281f174d | ENDO | PP | **No** (sin código) |
+| 21 | Guiso de lentejas con carne magra y verduras [ECT-MESO·GP].jfif | 33dbdcca14c285dd580e4dedb789b83796f489ff64dee10636f113e1593adc85 | ECT-MESO | GP | **No** (sin código) |
+| 22 | Hotcakes de banana, avena y huevo sin harina [ECT-MESO·GM].jfif | 090cff6546fa4273a924f2b38aafcf61e77d4686fd709b4513d5412a8da87810 | ECT-MESO | GM | **No** (sin código) |
+| 23 | Huminta de choclo con queso fresco moderado [MESO-ENDO·MANT].jfif | 415a605d6e9d888762114c415c8ef59227b70d830914fcf2520b9cbc0c9f2443 | MESO-ENDO | MANT | **No** (sin código) |
+| 24 | Muslo de pollo al horno con maíz y arvejas [ECT·GP].jfif | 9f714fdec2e2f0025eeea864d9b449371330e30dc5e4aee31913a2054203ca0b | ECT | GP | **No** (sin código) |
+| 25 | Omelette de claras con verduras y hojas verdes [ENDO·PP].jfif | ac44d2ca1a6eba19b4c006409c5e3d66413e0c02cd20180e4f815c66b3ef867f | ENDO | PP | **No** (sin código) |
+| 26 | Pacumuto magro al horno con yuca cocida y ensalada [ECT·GP].jfif | 93a5a4f0dcb1c27ef622dce2a78920916465f8084ef37c774dc29e7c8d9bfba7 | ECT | GP | **No** (sin código) |
+| 27 | Pasta integral con carne molida magra y verduras [ECT-MESO·GP].jfif | 7694c421844aedd7bb729651d7ec2a7bd998d08303db3601771f8ca17328b8fa | ECT-MESO | GP | **No** (sin código) |
+| 28 | Pechuga de pollo a la plancha con quinua y verduras grilladas [MESO·GM].jfif | 15d7700699be4d198c3293a0dd4e0265510678de4d5ab50f2f73350a0ab8c5c8 | MESO | GM | **No** (sin código) |
+| 29 | Pechuga de pollo con fideos de zucchini [ENDO·PP].jfif | 3aab23c354acfb6f6f92953034daca3ecdcc348eaf7672009ddf882c9a42c3fa | ENDO | PP | **No** (sin código) |
+| 30 | Pescado al horno con arroz de coco y ensalada [ECT·GP].jfif | eea82a93977fdbc62f3402791af809e4d1ca50b73f8bcd24868c2d8dd59f5c88 | ECT | GP | **No** (sin código) |
+| 31 | Pescado al horno con puré de camote [ECT·GP].jfif | a5f8bcb84530d39a9ddc83cdb00867b7450c556233dfa4fc3bf747a263e4cc46 | ECT | GP | **No** (sin código) |
+| 32 | Pimiento relleno de carne molida de pavo y quinua [ENDO·PP].jfif | e68e0ce675cbf45523350b7f4d975f805e696cbbfe2b76a673d10d28440c2994 | ENDO | PP | **No** (sin código) |
+| 33 | Pudín de chía con leche de almendras y frutillas [ENDO·PP].jfif | 5972d5aa0d5040082c952ea8df29bb243bba56d10051a191bd9cd9f19889af5a | ENDO | PP | **No** (sin código) |
+| 34 | Salmón al horno con arroz integral y espárragos [MESO·MANT].jfif | 3ce5b40eb35c444cd5741808071ceb1b315c79d381d2872859b23590af91d946 | MESO | MANT | **No** (sin código) |
+| 35 | Salmón grillado con espinacas salteadas [MESO·MANT].jfif | 27bb7aac417dc91d657150e5a333674c90d32501420483e6d76c9f95fc2d4ad4 | MESO | MANT | **No** (sin código) |
+| 36 | Saltado de res magra con verduras y fideo integral [MESO-ENDO·MANT].jfif | 1648c54dba8e6753e8cd8c37d07ef04bef93fed04b047e8ac5a092943026cb0c | MESO-ENDO | MANT | **No** (sin código) |
+| 37 | Sopa de quinua con pollo y verduras [ECT-MESO·GP].jfif | 860b3bd37e323a6ec9d43c01f4706c326e9ab3bbce55a09e66806a5374b9218e | ECT-MESO | GP | **No** (sin código) |
+| 38 | Sopa de verduras con pollo desmenuzado y choclo [ENDO·PP].jfif | 764c580d39df9a5bc2867e110ea0d74ae54d7f0f89a4f33e054a16a01f9c44dc | ENDO | PP | **No** (sin código) |
+| 39 | Stir-fry de pollo y brócoli con sésamo [MESO·GM].jfif | 2925fbf4ff987c53b18e2b2476797c80642a8785cef13276933c5e26fe000e09 | MESO | GM | **No** (sin código) |
+| 40 | Sándwich integral de huevo, pavo y palta [MESO·GM].jfif | 95ef6794e9f7325e1f2609d87762868de076b8d0f8a0d9243a65df0c5f3f6a2d | MESO | GM | **No** (sin código) |
+| 41 | Tortilla de huevo y verduras con tostada integral [ECT-MESO·MANT].jfif | 83a2ba6a939491d5c63995bfa0ad937bfad5eae903375c4649f8c2d3841b3b2c | ECT-MESO | MANT | **No** (sin código) |
+| 42 | Tostadas integrales con ricota y tomate [MESO-ENDO·PP].jfif | bcb2d013e5ad87ff65fbe5f69867f26d472156896419090315efc87704f49ddc | MESO-ENDO | PP | **No** (sin código) |
+| 43 | Trucha al horno con guiso de chuño y verduras [ECT·GP].jfif | b6732444eca82d0f4c9e7a1fa40250dc1ce314f2d5394d1fead6f28da1b850a8 | ECT | GP | **No** (sin código) |
+| 44 | Wrap integral de pollo y palta con ensalada [MESO·MANT].jfif | cc364f068c48f65a61421f1b8d82c21a171522b6f8d4a0a1459ad6e342af8ea6 | MESO | MANT | **No** (sin código) |
+| 45 | filete de res magra con papa al horno y ensalada [MESO·GM].jfif | 0c5b6051d35532ab8867750903a9547adc37b936a30a6ac1840dcd4fc5a6e680 | MESO | GM | **No** (sin código) |

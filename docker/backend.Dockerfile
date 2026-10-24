@@ -14,15 +14,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Instalar dependencias Python
-COPY requirements.txt .
+COPY requirements.txt requirements-dev.txt ./
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir -r requirements.txt -r requirements-dev.txt
 
-# Copiar código fuente
+# Copiar código fuente, tests, datos y artefactos de modelos
 COPY app ./app
-COPY backend ./backend
+# backend/ no contiene la aplicación ASGI activa; solo se copia el entorno
+# Alembic. El Gateway autoritativo se encuentra en app/.
+COPY backend/alembic ./backend/alembic
 COPY alembic.ini ./
 COPY scripts ./scripts
+COPY tests ./tests
+COPY data ./data
+COPY artifacts ./artifacts
+COPY pytest.ini ./
 COPY docker/backend_entrypoint.sh /entrypoint.sh
 
 RUN chmod +x /entrypoint.sh

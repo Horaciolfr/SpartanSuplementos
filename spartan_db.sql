@@ -127,12 +127,17 @@ CREATE TABLE erp.kardex_fisico (
 -- ==========================================
 CREATE TABLE ia.version_modelo_ia (
     id_version SERIAL PRIMARY KEY,
-    hash_archivo VARCHAR(255) UNIQUE NOT NULL,
+    algoritmo VARCHAR(100),
+    hash_archivo VARCHAR(255) NOT NULL,
     metric_accuracy DECIMAL(5,4),
     metric_rmse DECIMAL(5,4),
     aprobado_produccion BOOLEAN DEFAULT FALSE,
     fecha_entrenamiento TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE UNIQUE INDEX uq_version_modelo_ia_activa_algoritmo
+    ON ia.version_modelo_ia (algoritmo)
+    WHERE aprobado_produccion = TRUE;
 
 CREATE TABLE ia.regla_inferencia_cart (
     id_regla SERIAL PRIMARY KEY,
@@ -147,7 +152,7 @@ CREATE TABLE ia.perfil_biometrico (
     id_usuario INT NOT NULL REFERENCES erp.usuario(id_usuario),
     id_somatotipo INT REFERENCES parametros.catalogo_somatotipo(id_somatotipo),
     coordenadas_espaciales JSONB NOT NULL,
-    precision_captura DECIMAL(5,4),
+    precision_captura DECIMAL(8,6),
     estatura_cm DECIMAL(5,2),
     peso_kg DECIMAL(5,2),
     fecha_captura TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP

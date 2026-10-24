@@ -1,15 +1,24 @@
-import os
-from pathlib import Path
+"""Predicción de ventas con validación temporal y trazabilidad de fuentes.
+
+La proyección publicada procede del mismo modelo que se evalúa. No se usan
+factores comerciales manuales ni ruido aleatorio para dibujar la curva.
+"""
+
+from __future__ import annotations
+
+import hashlib
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Tuple
+
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import r2_score, root_mean_squared_error
+from sklearn.metrics import mean_absolute_error, r2_score, root_mean_squared_error
 
 from app.modules.predicciones.schemas import (
-    AlertaReorden,
     DashboardPrediccionesResponse,
+    FuenteDatos,
     InsightEstrategico,
     MetricasModelo,
     ProyeccionCategoria,
@@ -17,430 +26,459 @@ from app.modules.predicciones.schemas import (
     SucursalResumen,
 )
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
-# Rutas posibles para Central (512 ventas)
 CENTRAL_PATHS = [
+    PROJECT_ROOT / "data" / "ventas_spartan_512_actualizado.xlsx",
     PROJECT_ROOT / "data" / "registro_ventas_spartan.csv",
-    PROJECT_ROOT.parent / "data" / "registro_ventas_spartan.csv",
-    PROJECT_ROOT.parent / "data" / "ventas_spartan_suplementos_oficial.xlsx",
-    PROJECT_ROOT.parent / "ventas_spartan_512_actualizado.xlsx",
+    PROJECT_ROOT / "data" / "ventas_spartan_suplementos_oficial.xlsx",
 ]
-
-# Rutas posibles para Santa Cruz (885 ventas)
 SANTA_CRUZ_PATHS = [
+    PROJECT_ROOT / "data" / "ventas_spartan_santa_cruz_fuente.xlsx",
     PROJECT_ROOT / "data" / "registro_ventas_santa_cruz.csv",
-    PROJECT_ROOT.parent / "registro_ventas_santa_cruz.csv",
-    PROJECT_ROOT.parent / "data" / "ventas_spartan_santa_cruz.xlsx",
-    PROJECT_ROOT.parent / "ventas_spartan_santa_cruz.xlsx",
+    PROJECT_ROOT / "data" / "ventas_spartan_santa_cruz.xlsx",
 ]
 
-DIAS_SEMANA_ES = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+SUCURSAL_CENTRAL = "Sucursal Central (La Paz)"
+SUCURSAL_SANTA_CRUZ = "Sucursal Santa Cruz (Equipetrol)"
+SUCURSALES = (SUCURSAL_CENTRAL, SUCURSAL_SANTA_CRUZ)
+DIAS_SEMANA_ES = ("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
+
+FEATURES_NUMERICAS = (
+    "dia_semana", "mes", "dia_mes", "semana_anio", "es_fin_semana",
+    "es_fin_mes", "t", "lag1", "lag2", "lag3", "lag7", "lag14",
+    "lag28", "mm7", "mm14", "mm28",
+)
 
 
 class PrediccionVentasService:
-    def __init__(self):
+    """Entrena, valida y publica una única proyección reproducible."""
+
+    def __init__(self) -> None:
         self._df_ventas: Optional[pd.DataFrame] = None
         self._model: Optional[RandomForestRegressor] = None
         self._metricas: Optional[MetricasModelo] = None
+        self._feature_columns: List[str] = []
+        self._series_by_branch: Dict[str, pd.Series] = {}
+        self._residual_bounds: Dict[str, Tuple[float, float]] = {}
+        self._fuentes: List[FuenteDatos] = []
         self._last_loaded: Optional[datetime] = None
 
+    @staticmethod
+    def _sha256_corto(path: Path) -> str:
+        digest = hashlib.sha256()
+        with path.open("rb") as handle:
+            for block in iter(lambda: handle.read(1024 * 1024), b""):
+                digest.update(block)
+        return digest.hexdigest()[:12]
+
+    @staticmethod
+    def _leer_fuente(paths: List[Path]) -> Tuple[pd.DataFrame, Path]:
+        errors: List[str] = []
+        for path in paths:
+            if not path.exists():
+                continue
+            try:
+                if path.suffix.lower() == ".csv":
+                    return pd.read_csv(path, encoding="latin-1"), path
+                excel = pd.ExcelFile(path)
+                sheet = "Datos_Machine_Learning" if "Datos_Machine_Learning" in excel.sheet_names else excel.sheet_names[0]
+                return pd.read_excel(path, sheet_name=sheet), path
+            except Exception as exc:  # pragma: no cover - diagnóstico de fuentes alternativas
+                errors.append(f"{path.name}: {exc}")
+        detail = "; ".join(errors) if errors else "ninguna ruta disponible"
+        raise FileNotFoundError(f"No se pudo cargar una fuente de ventas ({detail}).")
+
+    @staticmethod
+    def _normalizar_dataset(df: pd.DataFrame, branch: str) -> pd.DataFrame:
+        central_columns = [
+            "id_transaccion", "fecha", "hora", "codigo_sku", "nombre_producto",
+            "categoria", "subcategoria", "precio_unitario", "cantidad", "subtotal_bs",
+            "descuento_bs", "total_bs", "metodo_pago", "cliente", "caja", "estado",
+        ]
+        santa_columns = [
+            "id_transaccion", "fecha", "hora", "codigo_sku", "nombre_producto",
+            "categoria", "subcategoria", "precio_unitario", "cantidad", "subtotal_bs",
+            "descuento_bs", "total_bs", "metodo_pago", "cliente", "sucursal_origen", "caja", "estado",
+        ]
+        normalized = df.copy()
+        normalized.columns = [str(column).strip().lower() for column in normalized.columns]
+        if len(normalized.columns) == len(central_columns):
+            normalized.columns = central_columns
+        elif len(normalized.columns) == len(santa_columns):
+            normalized.columns = santa_columns
+
+        required = {
+            "id_transaccion", "fecha", "codigo_sku", "nombre_producto", "categoria",
+            "subcategoria", "precio_unitario", "cantidad", "total_bs", "descuento_bs",
+            "metodo_pago", "estado",
+        }
+        missing = sorted(required.difference(normalized.columns))
+        if missing:
+            raise ValueError(f"La fuente de {branch} no contiene: {', '.join(missing)}")
+
+        normalized["sucursal"] = branch
+        normalized["fecha_dt"] = pd.to_datetime(normalized["fecha"], errors="coerce")
+        normalized["total_bs"] = pd.to_numeric(normalized["total_bs"], errors="coerce").fillna(0.0)
+        normalized["cantidad"] = pd.to_numeric(normalized["cantidad"], errors="coerce").fillna(0).astype(int)
+        normalized["descuento_bs"] = pd.to_numeric(normalized["descuento_bs"], errors="coerce").fillna(0.0)
+        normalized["estado"] = normalized["estado"].astype(str).str.strip().str.upper()
+        return normalized.dropna(subset=["fecha_dt"]).reset_index(drop=True)
+
     def cargar_datos(self) -> pd.DataFrame:
-        """Carga y estandariza los datasets de ambas sucursales (Central y Santa Cruz)."""
-        df_central = None
-        for p in CENTRAL_PATHS:
-            if p.exists():
-                try:
-                    if p.suffix == ".csv":
-                        df_central = pd.read_csv(p, encoding="latin-1", header=0)
-                    else:
-                        xl = pd.ExcelFile(p)
-                        sheet = "Datos_Machine_Learning" if "Datos_Machine_Learning" in xl.sheet_names else xl.sheet_names[0]
-                        df_central = xl.parse(sheet)
-                    break
-                except Exception:
-                    continue
+        """Carga exactamente los dos datasets entregados y registra su procedencia."""
+        central_raw, central_path = self._leer_fuente(CENTRAL_PATHS)
+        santa_raw, santa_path = self._leer_fuente(SANTA_CRUZ_PATHS)
+        central = self._normalizar_dataset(central_raw, SUCURSAL_CENTRAL)
+        santa = self._normalizar_dataset(santa_raw, SUCURSAL_SANTA_CRUZ)
+        combined = pd.concat([central, santa], ignore_index=True)
 
-        df_sc = None
-        for p in SANTA_CRUZ_PATHS:
-            if p.exists():
-                try:
-                    if p.suffix == ".csv":
-                        df_sc = pd.read_csv(p, encoding="latin-1", header=0)
-                    else:
-                        xl = pd.ExcelFile(p)
-                        sheet = "Datos_Machine_Learning" if "Datos_Machine_Learning" in xl.sheet_names else xl.sheet_names[0]
-                        df_sc = xl.parse(sheet)
-                    break
-                except Exception:
-                    continue
+        if combined.duplicated(subset=["sucursal", "id_transaccion"]).any():
+            raise ValueError("Se detectaron transacciones duplicadas dentro de una sucursal.")
 
-        if df_central is None or df_sc is None:
-            raise FileNotFoundError("No se pudieron cargar los datasets oficiales de Central y Santa Cruz.")
-
-        # Estandarización de columnas para Central
-        cols_std_c = [
-            "id_transaccion", "fecha", "hora", "codigo_sku", "nombre_producto",
-            "categoria", "subcategoria", "precio_unitario", "cantidad", "subtotal_bs",
-            "descuento_bs", "total_bs", "metodo_pago", "cliente", "caja", "estado"
+        self._fuentes = [
+            FuenteDatos(
+                nombre=central_path.name,
+                sucursal="La Paz",
+                registros=len(central),
+                fecha_inicio=str(central["fecha_dt"].min().date()),
+                fecha_fin=str(central["fecha_dt"].max().date()),
+                sha256_corto=self._sha256_corto(central_path),
+            ),
+            FuenteDatos(
+                nombre=santa_path.name,
+                sucursal="Santa Cruz",
+                registros=len(santa),
+                fecha_inicio=str(santa["fecha_dt"].min().date()),
+                fecha_fin=str(santa["fecha_dt"].max().date()),
+                sha256_corto=self._sha256_corto(santa_path),
+            ),
         ]
-        if len(df_central.columns) == len(cols_std_c):
-            df_central.columns = cols_std_c
-        df_central["sucursal"] = "Sucursal Central (La Paz)"
-
-        # Estandarización de columnas para Santa Cruz
-        cols_std_sc = [
-            "id_transaccion", "fecha", "hora", "codigo_sku", "nombre_producto",
-            "categoria", "subcategoria", "precio_unitario", "cantidad", "subtotal_bs",
-            "descuento_bs", "total_bs", "metodo_pago", "cliente", "sucursal", "caja", "estado"
-        ]
-        if len(df_sc.columns) == len(cols_std_sc):
-            df_sc.columns = cols_std_sc
-        df_sc["sucursal"] = "Sucursal Santa Cruz (Equipetrol)"
-
-        df_combined = pd.concat([df_central, df_sc], ignore_index=True)
-        df_combined["fecha_dt"] = pd.to_datetime(df_combined["fecha"])
-        df_combined["total_bs"] = pd.to_numeric(df_combined["total_bs"], errors="coerce").fillna(0.0)
-        df_combined["cantidad"] = pd.to_numeric(df_combined["cantidad"], errors="coerce").fillna(1).astype(int)
-        df_combined["descuento_bs"] = pd.to_numeric(df_combined["descuento_bs"], errors="coerce").fillna(0.0)
-
-        self._df_ventas = df_combined
+        self._df_ventas = combined
+        self._model = None
+        self._metricas = None
         self._last_loaded = datetime.now()
-        return self._df_ventas
+        return combined
 
     def obtener_dataframe(self) -> pd.DataFrame:
-        if self._df_ventas is None:
-            return self.cargar_datos()
-        return self._df_ventas
+        return self.cargar_datos() if self._df_ventas is None else self._df_ventas
+
+    @staticmethod
+    def _es_completada(series: pd.Series) -> pd.Series:
+        return series.astype(str).str.upper().eq("COMPLETADA")
+
+    def _construir_panel(self, df: pd.DataFrame) -> pd.DataFrame:
+        completed = df[self._es_completada(df["estado"])].copy()
+        start_date = completed["fecha_dt"].min()
+        end_date = completed["fecha_dt"].max()
+        dates = pd.date_range(start_date, end_date, freq="D")
+        frames: List[pd.DataFrame] = []
+        self._series_by_branch = {}
+        for branch in SUCURSALES:
+            daily = (
+                completed[completed["sucursal"] == branch]
+                .groupby("fecha_dt")["total_bs"]
+                .sum()
+                .reindex(dates, fill_value=0.0)
+                .astype(float)
+            )
+            self._series_by_branch[branch] = daily.copy()
+            frame = pd.DataFrame({"fecha_dt": dates, "ventas_bs": daily.values, "sucursal": branch})
+            frames.append(frame)
+
+        panel = pd.concat(frames, ignore_index=True).sort_values(["sucursal", "fecha_dt"]).reset_index(drop=True)
+        panel["dia_semana"] = panel["fecha_dt"].dt.day_of_week
+        panel["mes"] = panel["fecha_dt"].dt.month
+        panel["dia_mes"] = panel["fecha_dt"].dt.day
+        panel["semana_anio"] = panel["fecha_dt"].dt.isocalendar().week.astype(int)
+        panel["es_fin_semana"] = panel["dia_semana"].isin([4, 5, 6]).astype(int)
+        panel["es_fin_mes"] = panel["fecha_dt"].dt.is_month_end.astype(int)
+        panel["t"] = (panel["fecha_dt"] - start_date).dt.days
+        grouped = panel.groupby("sucursal", sort=False)["ventas_bs"]
+        for lag in (1, 2, 3, 7, 14, 28):
+            panel[f"lag{lag}"] = grouped.shift(lag)
+        for window in (7, 14, 28):
+            panel[f"mm{window}"] = grouped.transform(
+                lambda values: values.shift(1).rolling(window, min_periods=window).mean()
+            )
+        return panel.dropna().reset_index(drop=True)
+
+    def _matriz_features(self, frame: pd.DataFrame) -> pd.DataFrame:
+        matrix = pd.get_dummies(
+            frame[list(FEATURES_NUMERICAS) + ["sucursal"]],
+            columns=["sucursal"],
+            dtype=int,
+        )
+        if self._feature_columns:
+            matrix = matrix.reindex(columns=self._feature_columns, fill_value=0)
+        return matrix
+
+    @staticmethod
+    def _wape(real: pd.Series | np.ndarray, predicted: np.ndarray) -> float:
+        real_array = np.asarray(real, dtype=float)
+        denominator = max(float(np.abs(real_array).sum()), 1.0)
+        return float(np.abs(real_array - predicted).sum() / denominator * 100.0)
 
     def entrenar_modelo_predictivo(self) -> Tuple[RandomForestRegressor, MetricasModelo]:
-        """Ajusta un modelo de Random Forest Regressor sobre el histórico de ventas diarias."""
-        df = self.obtener_dataframe()
-        df_ok = df[df["estado"] == "Completada"].copy()
+        """Valida sobre los últimos 60 días y luego reajusta con todo el histórico."""
+        panel = self._construir_panel(self.obtener_dataframe())
+        self._feature_columns = []
+        matrix = self._matriz_features(panel)
+        self._feature_columns = list(matrix.columns)
+        target = panel["ventas_bs"].astype(float)
 
-        start_date = df_ok["fecha_dt"].min()
-        end_date = df_ok["fecha_dt"].max()
-        all_dates = pd.date_range(start_date, end_date, freq="D")
+        validation_start = panel["fecha_dt"].max() - pd.Timedelta(days=59)
+        train_mask = panel["fecha_dt"] < validation_start
+        validation_mask = ~train_mask
+        if train_mask.sum() < 120 or validation_mask.sum() < 30:
+            raise ValueError("El histórico no alcanza para una validación temporal confiable.")
 
-        # Construcción de panel diario por sucursal
-        records = []
-        for suc in ["Sucursal Central (La Paz)", "Sucursal Santa Cruz (Equipetrol)"]:
-            sub = df_ok[df_ok["sucursal"] == suc]
-            daily_s = sub.groupby("fecha_dt").agg(
-                ventas_bs=("total_bs", "sum"),
-                unidades=("cantidad", "sum"),
-                transacciones=("id_transaccion", "count")
-            ).reindex(all_dates, fill_value=0).reset_index()
-            daily_s = daily_s.rename(columns={"index": "fecha_dt"})
-            daily_s["sucursal"] = suc
-            records.append(daily_s)
-
-        df_panel = pd.concat(records, ignore_index=True)
-        df_panel["dia_semana"] = df_panel["fecha_dt"].dt.weekday
-        df_panel["mes"] = df_panel["fecha_dt"].dt.month
-        df_panel["es_fd"] = df_panel["dia_semana"].isin([4, 5, 6]).astype(int)
-        df_panel["es_fin_mes"] = (df_panel["fecha_dt"].dt.day >= 28).astype(int)
-        df_panel["t"] = (df_panel["fecha_dt"] - start_date).dt.days
-
-        # Medias móviles retrospectivas sin fuga de información
-        for suc in df_panel["sucursal"].unique():
-            mask = df_panel["sucursal"] == suc
-            df_panel.loc[mask, "mm7"] = df_panel.loc[mask, "ventas_bs"].shift(1).rolling(7, min_periods=1).mean().fillna(0)
-            df_panel.loc[mask, "mm14"] = df_panel.loc[mask, "ventas_bs"].shift(1).rolling(14, min_periods=1).mean().fillna(0)
-
-        features = ["dia_semana", "mes", "es_fd", "es_fin_mes", "t", "mm7", "mm14"]
-        X = pd.get_dummies(df_panel[features + ["sucursal"]], columns=["sucursal"], drop_first=True)
-        y = df_panel["ventas_bs"]
-
-        rf = RandomForestRegressor(
-            n_estimators=150,
-            max_depth=8,
-            min_samples_split=4,
-            random_state=42,
-            # Un solo worker evita fallos de permisos al crear procesos en
-            # Windows y mantiene estable la latencia dentro del servidor ASGI.
-            n_jobs=1
+        candidate = RandomForestRegressor(
+            n_estimators=400, max_depth=10, min_samples_leaf=2,
+            max_features=0.8, random_state=42, n_jobs=1,
         )
-        rf.fit(X, y)
-        preds = rf.predict(X)
+        candidate.fit(matrix.loc[train_mask], target.loc[train_mask])
+        predicted = candidate.predict(matrix.loc[validation_mask])
+        real = target.loc[validation_mask]
+        baseline = panel.loc[validation_mask, "mm7"].to_numpy(dtype=float)
 
-        r2 = float(r2_score(y, preds))
-        rmse = float(root_mean_squared_error(y, preds))
-        
-        # MAPE solo en días con ventas > 0
-        mask_nonzero = y > 50
-        mape = float(np.mean(np.abs((y[mask_nonzero] - preds[mask_nonzero]) / y[mask_nonzero])) * 100) if mask_nonzero.sum() > 0 else 14.5
+        rmse = float(root_mean_squared_error(real, predicted))
+        mae = float(mean_absolute_error(real, predicted))
+        wape = self._wape(real, predicted)
+        nonzero = real > 50
+        mape = float(np.mean(np.abs((real[nonzero] - predicted[nonzero]) / real[nonzero])) * 100) if nonzero.any() else 0.0
+        r2 = float(r2_score(real, predicted))
+        baseline_rmse = float(root_mean_squared_error(real, baseline))
+        baseline_mae = float(mean_absolute_error(real, baseline))
+        baseline_wape = self._wape(real, baseline)
+        improvement = ((baseline_rmse - rmse) / baseline_rmse * 100.0) if baseline_rmse else 0.0
 
-        metricas = MetricasModelo(
-            algoritmo="RandomForestRegressor (AR-Lagged Feature Set)",
-            r2_score=round(r2, 4),
-            rmse_bs=round(rmse, 2),
-            mape_pct=round(mape, 2),
-            confianza_intervalo_pct=95.0,
-            muestras_entrenamiento=len(df_panel)
+        validation_rows = panel.loc[validation_mask, ["sucursal"]].copy()
+        validation_rows["residuo"] = real.to_numpy() - predicted
+        all_residuals = validation_rows["residuo"].to_numpy(dtype=float)
+        global_bounds = tuple(float(value) for value in np.quantile(all_residuals, [0.05, 0.95]))
+        self._residual_bounds = {}
+        for branch in SUCURSALES:
+            residuals = validation_rows.loc[validation_rows["sucursal"] == branch, "residuo"].to_numpy(dtype=float)
+            self._residual_bounds[branch] = (
+                tuple(float(value) for value in np.quantile(residuals, [0.05, 0.95]))
+                if len(residuals) >= 20 else global_bounds
+            )
+        lower = predicted + global_bounds[0]
+        upper = predicted + global_bounds[1]
+        coverage = float(np.mean((real.to_numpy() >= lower) & (real.to_numpy() <= upper)) * 100.0)
+
+        data_cut = panel["fecha_dt"].max().date()
+        age_days = (datetime.now().date() - data_cut).days
+        freshness = "ACTUALIZADA" if age_days <= 60 else "DESACTUALIZADA"
+        validation_state = "ACEPTABLE" if improvement >= 10.0 and wape <= 35.0 else "REFERENCIAL"
+        warnings: List[str] = []
+        if validation_state == "REFERENCIAL":
+            warnings.append(
+                "El error fuera de muestra es alto o la mejora frente al promedio móvil es menor al 10%; úsese para orientación, no como compromiso de venta."
+            )
+        if freshness == "DESACTUALIZADA":
+            warnings.append(f"El último registro es del {data_cut.isoformat()}; incorpore ventas recientes antes de una decisión operativa.")
+
+        metrics = MetricasModelo(
+            algoritmo="Random Forest de facturación diaria con rezagos",
+            r2_score=round(r2, 4), rmse_bs=round(rmse, 2), mape_pct=round(mape, 2),
+            confianza_intervalo_pct=90.0, muestras_entrenamiento=int(train_mask.sum()),
+            mae_bs=round(mae, 2), wape_pct=round(wape, 2),
+            baseline_rmse_bs=round(baseline_rmse, 2), baseline_mae_bs=round(baseline_mae, 2),
+            baseline_wape_pct=round(baseline_wape, 2), mejora_vs_baseline_pct=round(improvement, 2),
+            muestras_validacion=int(validation_mask.sum()),
+            inicio_validacion=str(panel.loc[validation_mask, "fecha_dt"].min().date()),
+            fin_validacion=str(panel.loc[validation_mask, "fecha_dt"].max().date()),
+            estado_validacion=validation_state, cobertura_intervalo_pct=round(coverage, 2),
+            vigencia_datos=freshness, advertencia=" ".join(warnings) or None,
+            fuentes_datos=self._fuentes, objetivo_unidades="Facturación diaria agregada (Bs.)",
+            r2_monetario_rotulo="R² fuera de muestra sobre facturación diaria",
+            corte_serie=str(data_cut),
         )
 
-        self._model = rf
-        self._metricas = metricas
-        return rf, metricas
+        final_model = RandomForestRegressor(
+            n_estimators=400, max_depth=10, min_samples_leaf=2,
+            max_features=0.8, random_state=42, n_jobs=1,
+        )
+        final_model.fit(matrix, target)
+        self._model = final_model
+        self._metricas = metrics
+        return final_model, metrics
+
+    def _proyectar_sucursal(self, branch: str, horizon: int) -> List[Dict[str, Any]]:
+        if self._model is None:
+            raise RuntimeError("El modelo debe entrenarse antes de proyectar.")
+        history = list(self._series_by_branch[branch].astype(float).values)
+        start_date = self._series_by_branch[branch].index.min()
+        last_date = self._series_by_branch[branch].index.max()
+        residual_low, residual_high = self._residual_bounds[branch]
+        historical_q75 = float(self._series_by_branch[branch].quantile(0.75))
+        results: List[Dict[str, Any]] = []
+        for step in range(1, horizon + 1):
+            future_date = last_date + timedelta(days=step)
+            row: Dict[str, Any] = {
+                "dia_semana": future_date.day_of_week, "mes": future_date.month,
+                "dia_mes": future_date.day, "semana_anio": int(future_date.isocalendar().week),
+                "es_fin_semana": int(future_date.day_of_week in (4, 5, 6)),
+                "es_fin_mes": int(future_date.is_month_end), "t": (future_date - start_date).days,
+                "sucursal": branch,
+            }
+            for lag in (1, 2, 3, 7, 14, 28):
+                row[f"lag{lag}"] = history[-lag]
+            for window in (7, 14, 28):
+                row[f"mm{window}"] = float(np.mean(history[-window:]))
+            prediction = max(0.0, float(self._model.predict(self._matriz_features(pd.DataFrame([row])))[0]))
+            history.append(prediction)
+            results.append({
+                "fecha": future_date, "prediccion": prediction,
+                "inferior": max(0.0, prediction + residual_low),
+                "superior": max(0.0, prediction + residual_high),
+                "pico": prediction >= historical_q75,
+            })
+        return results
+
+    def _proyecciones(self, filtro: str, horizon: int, completed: pd.DataFrame) -> List[ProyeccionDiaria]:
+        branches = [SUCURSAL_CENTRAL] if filtro == "CENTRAL" else (
+            [SUCURSAL_SANTA_CRUZ] if filtro == "SANTA_CRUZ" else list(SUCURSALES)
+        )
+        forecasts = [self._proyectar_sucursal(branch, horizon) for branch in branches]
+        historical = completed[completed["sucursal"].isin(branches)]
+        revenue_per_unit = float(historical["total_bs"].sum() / max(int(historical["cantidad"].sum()), 1))
+        result: List[ProyeccionDiaria] = []
+        for index in range(horizon):
+            rows = [forecast[index] for forecast in forecasts]
+            future_date = rows[0]["fecha"]
+            prediction = sum(float(row["prediccion"]) for row in rows)
+            result.append(ProyeccionDiaria(
+                fecha=future_date.strftime("%Y-%m-%d"), dia_semana=DIAS_SEMANA_ES[future_date.day_of_week],
+                es_fin_de_semana=future_date.day_of_week in (4, 5, 6), es_fin_de_mes=bool(future_date.is_month_end),
+                prediccion_bs=round(prediction, 2),
+                limite_inferior_bs=round(sum(float(row["inferior"]) for row in rows), 2),
+                limite_superior_bs=round(sum(float(row["superior"]) for row in rows), 2),
+                unidades_estimadas=max(0, int(round(prediction / max(revenue_per_unit, 1.0)))),
+                es_pico_esperado=any(bool(row["pico"]) for row in rows),
+            ))
+        return result
+
+    @staticmethod
+    def _resumen_sucursales(df: pd.DataFrame) -> List[SucursalResumen]:
+        completed_all = df[PrediccionVentasService._es_completada(df["estado"])]
+        total_revenue = float(completed_all["total_bs"].sum())
+        definitions = (
+            ("CENTRAL", SUCURSAL_CENTRAL, "La Paz"),
+            ("SANTA_CRUZ", SUCURSAL_SANTA_CRUZ, "Santa Cruz"),
+        )
+        summaries: List[SucursalResumen] = []
+        for code, name, city in definitions:
+            branch = df[df["sucursal"] == name]
+            completed = branch[PrediccionVentasService._es_completada(branch["estado"])]
+            revenue = float(completed["total_bs"].sum())
+            top_payment = str(completed["metodo_pago"].mode().iloc[0]) if not completed.empty else "Sin datos"
+            summaries.append(SucursalResumen(
+                codigo=code, nombre=name, ciudad=city, total_transacciones=len(branch),
+                completadas=len(completed), canceladas=len(branch) - len(completed),
+                con_descuento=int((branch["descuento_bs"] > 0).sum()),
+                facturacion_total_bs=round(revenue, 2),
+                ticket_promedio_bs=round(revenue / max(len(completed), 1), 2),
+                unidades_vendidas=int(completed["cantidad"].sum()), metodo_pago_lider=top_payment,
+                participacion_pct=round(revenue / max(total_revenue, 1.0) * 100.0, 2),
+            ))
+        return summaries
+
+    @staticmethod
+    def _proyeccion_categorias(completed: pd.DataFrame, projected_revenue: float) -> List[ProyeccionCategoria]:
+        if completed.empty:
+            return []
+        cut = completed["fecha_dt"].max()
+        recent_start = cut - pd.Timedelta(days=59)
+        previous_start = recent_start - pd.Timedelta(days=60)
+        recent = completed[completed["fecha_dt"] >= recent_start]
+        previous = completed[(completed["fecha_dt"] >= previous_start) & (completed["fecha_dt"] < recent_start)]
+        stats = recent.groupby(["categoria", "subcategoria"]).agg(
+            unidades_hist=("cantidad", "sum"), ingresos_hist=("total_bs", "sum"),
+        ).reset_index()
+        previous_revenue = previous.groupby(["categoria", "subcategoria"])["total_bs"].sum()
+        recent_total = max(float(stats["ingresos_hist"].sum()), 1.0)
+        projections: List[ProyeccionCategoria] = []
+        for _, row in stats.iterrows():
+            key = (row["categoria"], row["subcategoria"])
+            share = float(row["ingresos_hist"]) / recent_total
+            category_projection = projected_revenue * share
+            price = float(row["ingresos_hist"]) / max(int(row["unidades_hist"]), 1)
+            previous_value = float(previous_revenue.get(key, 0.0))
+            change = (float(row["ingresos_hist"]) - previous_value) / max(previous_value, 1.0)
+            trend = "ALZA" if change > 0.15 else ("BAJA" if change < -0.15 else "ESTABLE")
+            projections.append(ProyeccionCategoria(
+                categoria=str(row["categoria"]), subcategoria=str(row["subcategoria"]),
+                unidades_historicas=int(row["unidades_hist"]),
+                ingresos_historicos_bs=round(float(row["ingresos_hist"]), 2),
+                unidades_proyectadas=max(0, int(round(category_projection / max(price, 1.0)))),
+                ingresos_proyectados_bs=round(category_projection, 2),
+                participacion_pct=round(share * 100.0, 2), tendencia=trend,
+            ))
+        return sorted(projections, key=lambda item: item.ingresos_proyectados_bs, reverse=True)
 
     def generar_dashboard(
-        self,
-        sucursal_filtro: str = "TODAS",
-        horizonte_dias: int = 14,
+        self, sucursal_filtro: str = "TODAS", horizonte_dias: int = 14,
         version_activa: Optional[Mapping[str, Any]] = None,
     ) -> DashboardPrediccionesResponse:
-        """Construye el conjunto completo de datos y predicciones para el Administrador."""
+        filter_code = sucursal_filtro.upper()
+        if filter_code not in {"TODAS", "CENTRAL", "SANTA_CRUZ"}:
+            raise ValueError("Sucursal inválida. Use TODAS, CENTRAL o SANTA_CRUZ.")
         df = self.obtener_dataframe()
         if self._model is None or self._metricas is None:
             self.entrenar_modelo_predictivo()
+        if self._metricas is None:
+            raise RuntimeError("No fue posible obtener las métricas del modelo.")
 
-        df_completadas = df[df["estado"] == "Completada"].copy()
-
-        # 1. Resumen por Sucursales
-        sucursales_kpi: List[SucursalResumen] = []
-        suc_nombres = [
-            ("CENTRAL", "Sucursal Central (La Paz)", "La Paz"),
-            ("SANTA_CRUZ", "Sucursal Santa Cruz (Equipetrol)", "Santa Cruz"),
-        ]
-        total_facturado_global = float(df_completadas["total_bs"].sum())
-
-        for codigo, nombre_largo, ciudad in suc_nombres:
-            sub = df[df["sucursal"] == nombre_largo]
-            sub_ok = sub[sub["estado"] == "Completada"]
-
-            n_total = len(sub)
-            n_comp = len(sub_ok)
-            n_canc = int((sub["estado"] != "Completada").sum())
-            n_desc = int((sub["descuento_bs"] > 0).sum())
-            fact = float(sub_ok["total_bs"].sum())
-            unidades = int(sub_ok["cantidad"].sum())
-            ticket = round(fact / n_comp, 2) if n_comp > 0 else 0.0
-
-            metodo_top = sub_ok["metodo_pago"].value_counts().index[0] if len(sub_ok) > 0 else "Efectivo"
-            participacion = round((fact / total_facturado_global) * 100.0, 2) if total_facturado_global > 0 else 0.0
-
-            sucursales_kpi.append(SucursalResumen(
-                codigo=codigo,
-                nombre=nombre_largo,
-                ciudad=ciudad,
-                total_transacciones=n_total,
-                completadas=n_comp,
-                canceladas=n_canc,
-                con_descuento=n_desc,
-                facturacion_total_bs=round(fact, 2),
-                ticket_promedio_bs=ticket,
-                unidades_vendidas=unidades,
-                metodo_pago_lider=metodo_top,
-                participacion_pct=participacion
-            ))
-
-        # 2. Resumen General Consolidado
-        total_tx = len(df)
-        total_comp = len(df_completadas)
-        ticket_gral = round(total_facturado_global / total_comp, 2) if total_comp > 0 else 0.0
-        total_unidades = int(df_completadas["cantidad"].sum())
-
-        resumen_general = {
-            "total_transacciones_historicas": total_tx,
-            "transacciones_completadas": total_comp,
-            "transacciones_canceladas": total_tx - total_comp,
-            "total_ingresos_historicos_bs": round(total_facturado_global, 2),
-            "ticket_promedio_bs": ticket_gral,
-            "total_unidades_vendidas": total_unidades,
-            "periodo_analizado": f"{df['fecha'].min()} al {df['fecha'].max()}",
-            "sucursales_activas": 2,
-        }
-
-        # 3. Proyecciones Diarias Futuras (Horizonte 7, 14, 30 días)
-        last_date = df_completadas["fecha_dt"].max()
-        proyecciones: List[ProyeccionDiaria] = []
-
-        # Determinar base histórica de ventas diarias según filtro
-        if sucursal_filtro.upper() == "CENTRAL":
-            sub_f = df_completadas[df_completadas["sucursal"] == "Sucursal Central (La Paz)"]
-            factor_escala = 1.0
-        elif sucursal_filtro.upper() == "SANTA_CRUZ":
-            sub_f = df_completadas[df_completadas["sucursal"] == "Sucursal Santa Cruz (Equipetrol)"]
-            factor_escala = 1.0
-        else:
-            sub_f = df_completadas
-            factor_escala = 1.0
-
-        daily_sub = sub_f.groupby("fecha_dt")["total_bs"].sum()
-        mm7_current = float(daily_sub.tail(7).mean()) if len(daily_sub) >= 7 else 1200.0
-        std_residual = self._metricas.rmse_bs if self._metricas else 450.0
-
-        for i in range(1, horizonte_dias + 1):
-            f_futura = last_date + timedelta(days=i)
-            dow = f_futura.weekday()
-            es_fd = dow in [4, 5, 6]  # Viernes, Sábado, Domingo
-            es_fm = f_futura.day >= 28
-
-            # Efectos empíricos observados en retail fitness boliviano
-            factor_dia = 1.25 if es_fd else (0.85 if dow == 0 else 1.0)
-            factor_mes = 1.20 if es_fm else 1.0
-
-            # Predicción con ajuste de sucursal
-            if sucursal_filtro.upper() == "CENTRAL":
-                base_diaria = 950.0 + (mm7_current * 0.25)
-            elif sucursal_filtro.upper() == "SANTA_CRUZ":
-                base_diaria = 1350.0 + (mm7_current * 0.35)
-            else:
-                base_diaria = 2300.0 + (mm7_current * 0.30)
-
-            # Pequeña oscilación determinista para realismo de serie
-            np.random.seed(42 + i)
-            ruido = np.random.normal(0, 0.05)
-            pred_bs = max(200.0, base_diaria * factor_dia * factor_mes * (1.0 + ruido))
-
-            # Intervalo de confianza al 95% (± 1.96 * std)
-            ci_margen = 1.96 * (std_residual * (0.6 if sucursal_filtro != "TODAS" else 1.0))
-            lim_inf = max(50.0, pred_bs - ci_margen)
-            lim_sup = pred_bs + ci_margen
-
-            unidades_est = max(1, int(round(pred_bs / 340.0)))
-            es_pico = bool(es_fd or es_fm)
-
-            proyecciones.append(ProyeccionDiaria(
-                fecha=f_futura.strftime("%Y-%m-%d"),
-                dia_semana=DIAS_SEMANA_ES[dow],
-                es_fin_de_semana=es_fd,
-                es_fin_de_mes=es_fm,
-                prediccion_bs=round(pred_bs, 2),
-                limite_inferior_bs=round(lim_inf, 2),
-                limite_superior_bs=round(lim_sup, 2),
-                unidades_estimadas=unidades_est,
-                es_pico_esperado=es_pico
-            ))
-
-        # 4. Proyección por Categoría y Subcategoría
-        cat_stats = df_completadas.groupby(["categoria", "subcategoria"]).agg(
-            unidades_hist=("cantidad", "sum"),
-            ingresos_hist=("total_bs", "sum")
-        ).reset_index()
-
-        total_ingresos_cat = cat_stats["ingresos_hist"].sum()
-        total_pred_bs_periodo = sum(p.prediccion_bs for p in proyecciones)
-
-        proyecciones_cat: List[ProyeccionCategoria] = []
-        for _, r in cat_stats.iterrows():
-            part = r["ingresos_hist"] / total_ingresos_cat
-            ing_proy = total_pred_bs_periodo * part
-            p_unit = r["ingresos_hist"] / r["unidades_hist"] if r["unidades_hist"] > 0 else 300.0
-            u_proy = int(round(ing_proy / p_unit))
-
-            tendencia = "ALTA" if "Creatina" in r["subcategoria"] or "Isolatada" in r["subcategoria"] else (
-                "CRECIENTE" if "Termogénico" in r["subcategoria"] else "ESTABLE"
-            )
-
-            proyecciones_cat.append(ProyeccionCategoria(
-                categoria=str(r["categoria"]),
-                subcategoria=str(r["subcategoria"]),
-                unidades_historicas=int(r["unidades_hist"]),
-                ingresos_historicos_bs=round(float(r["ingresos_hist"]), 2),
-                unidades_proyectadas=u_proy,
-                ingresos_proyectados_bs=round(ing_proy, 2),
-                participacion_pct=round(part * 100.0, 2),
-                tendencia=tendencia
-            ))
-
-        # Ordenar por participación decreciente
-        proyecciones_cat.sort(key=lambda x: x.ingresos_proyectados_bs, reverse=True)
-
-        # 5. Alertas de Reorden e Inventario
-        # Top SKUs con velocidad de venta y simulación de stock
-        sku_stats = df_completadas.groupby(["codigo_sku", "nombre_producto", "subcategoria"]).agg(
-            total_qty=("cantidad", "sum")
-        ).reset_index().sort_values("total_qty", ascending=False).head(8)
-
-        alertas_inv: List[AlertaReorden] = []
-        for idx, row in sku_stats.iterrows():
-            demanda_est = max(2, int(round((row["total_qty"] / len(df_completadas)) * sum(p.unidades_estimadas for p in proyecciones))))
-            # Stock base de seguridad
-            stock_est = int(demanda_est * (0.65 if idx % 2 == 0 else 1.4))
-            dias_cob = round((stock_est / (demanda_est / horizonte_dias)), 1) if demanda_est > 0 else 30.0
-
-            if dias_cob < 5.0:
-                urgencia = "CRITICO"
-                sug = demanda_est * 2 - stock_est
-            elif dias_cob < 10.0:
-                urgencia = "MODERADO"
-                sug = demanda_est - stock_est
-            else:
-                urgencia = "OPTIMO"
-                sug = 0
-
-            alertas_inv.append(AlertaReorden(
-                codigo_sku=str(row["codigo_sku"]),
-                nombre_producto=str(row["nombre_producto"]),
-                subcategoria=str(row["subcategoria"]),
-                stock_actual_estimado=stock_est,
-                demanda_proyectada_periodo=demanda_est,
-                dias_cobertura_restante=dias_cob,
-                nivel_urgencia=urgencia,
-                sugerencia_reorden=max(0, sug)
-            ))
-
-        # 6. Insights Estratégicos con IA
-        insights: List[InsightEstrategico] = [
-            InsightEstrategico(
-                tipo="OPORTUNIDAD",
-                titulo="Santa Cruz Lidera en Facturación y Adopción Digital",
-                descripcion="La sucursal de Equipetrol genera el 62.6% de los ingresos totales con un ticket promedio sostenido. El método de pago QR y Tarjeta supera el 60%, facilitando campañas de recompra.",
-                impacto_estimado="+15% potencial en volumen con stock prioritario"
-            ),
-            InsightEstrategico(
-                tipo="ESTACIONALIDAD",
-                titulo="Concentración de Picos en Fines de Semana (Viernes a Domingo)",
-                descripcion="El modelo proyecta que el 52% de los ingresos semanales ocurrirá en viernes, sábado y domingo. Se sugiere reforzar personal de caja y stock disponible desde el jueves.",
-                impacto_estimado="+20% de facturación capturada sin quiebres"
-            ),
-            InsightEstrategico(
-                tipo="ALERTA",
-                titulo="Riesgo de Desabastecimiento en Proteínas Isolatadas (ISO 100)",
-                descripcion="La alta rotación de Whey Isolatada en Santa Cruz proyecta agotar la reserva en menos de 6 días operativos. Emitir orden de compra inmediata al proveedor.",
-                impacto_estimado="Evita lucro cesante de aprox. 4,200 Bs."
-            ),
-            InsightEstrategico(
-                tipo="SUCURSAL",
-                titulo="Patrón de Afinidad en Sucursal Central La Paz",
-                descripcion="En La Paz se evidencia una fidelidad muy alta a Creatina Creapure y Mass Gainers. Las promociones combinadas de creatina generan un 98% de conversión efectiva.",
-                impacto_estimado="Incremento de ticket promedio de 504 a 580 Bs."
-            ),
-        ]
-
-        corte = str(df_completadas["fecha_dt"].max().date()) if not df_completadas.empty else None
-
-        metricas_finales = MetricasModelo(
-            algoritmo=version_activa["algoritmo"] if version_activa and "algoritmo" in version_activa else (self._metricas.algoritmo if self._metricas else "RF_REGRESOR_DEMANDA"),
-            r2_score=self._metricas.r2_score if self._metricas else 0.6184,
-            rmse_bs=self._metricas.rmse_bs if self._metricas else 543.5,
-            mape_pct=self._metricas.mape_pct if self._metricas else 14.5,
-            confianza_intervalo_pct=95.0,
-            muestras_entrenamiento=self._metricas.muestras_entrenamiento if self._metricas else 1397,
-            id_version=int(version_activa["id_version"]) if version_activa and "id_version" in version_activa and version_activa["id_version"] is not None else None,
-            hash_artefacto=str(version_activa["hash_archivo"]) if version_activa and "hash_archivo" in version_activa and version_activa["hash_archivo"] is not None else None,
-            hash_corto=str(version_activa["hash_archivo"])[:8] if version_activa and "hash_archivo" in version_activa and version_activa["hash_archivo"] is not None else None,
-            objetivo_unidades="Demanda diaria agregada (unidades)",
-            metric_rmse_unidades=float(version_activa["metric_rmse"]) if version_activa and "metric_rmse" in version_activa and version_activa["metric_rmse"] is not None else None,
-            metric_accuracy=float(version_activa["metric_accuracy"]) if version_activa and "metric_accuracy" in version_activa and version_activa["metric_accuracy"] is not None else None,
-            r2_monetario_rotulo="R2 de proyección de facturación, recalculo sobre serie monetaria",
-            corte_serie=corte
+        completed = df[self._es_completada(df["estado"])].copy()
+        branches = [SUCURSAL_CENTRAL] if filter_code == "CENTRAL" else (
+            [SUCURSAL_SANTA_CRUZ] if filter_code == "SANTA_CRUZ" else list(SUCURSALES)
         )
+        filtered_completed = completed[completed["sucursal"].isin(branches)]
+        projections = self._proyecciones(filter_code, horizonte_dias, completed)
+        projected_revenue = sum(item.prediccion_bs for item in projections)
+        total_revenue = float(completed["total_bs"].sum())
+        metric_values = self._metricas.model_dump()
+        if version_activa:
+            metric_values.update({
+                "id_version": int(version_activa["id_version"]) if version_activa.get("id_version") is not None else None,
+                "hash_artefacto": str(version_activa["hash_archivo"]) if version_activa.get("hash_archivo") else None,
+                "hash_corto": str(version_activa["hash_archivo"])[:8] if version_activa.get("hash_archivo") else None,
+                "metric_rmse_unidades": float(version_activa["metric_rmse"]) if version_activa.get("metric_rmse") is not None else None,
+                "metric_accuracy": float(version_activa["metric_accuracy"]) if version_activa.get("metric_accuracy") is not None else None,
+            })
+        final_metrics = MetricasModelo(**metric_values)
+        insights = [InsightEstrategico(
+            tipo="VALIDACION", titulo="Resultado de la validación temporal",
+            descripcion=(f"El modelo obtuvo WAPE de {final_metrics.wape_pct:.1f}% y una mejora de "
+                         f"{final_metrics.mejora_vs_baseline_pct:.1f}% frente al promedio móvil de 7 días."),
+            impacto_estimado=final_metrics.estado_validacion,
+        )]
+        if final_metrics.vigencia_datos == "DESACTUALIZADA":
+            insights.append(InsightEstrategico(
+                tipo="CALIDAD_DATOS", titulo="Histórico pendiente de actualización",
+                descripcion=f"La serie termina el {final_metrics.corte_serie}; la proyección representa el periodo inmediatamente posterior a ese corte.",
+                impacto_estimado="Actualizar antes de usar en operación",
+            ))
 
         return DashboardPrediccionesResponse(
-            resumen_general=resumen_general,
-            sucursales=sucursales_kpi,
-            metricas_modelo=metricas_finales,
-            proyecciones_diarias=proyecciones,
-            proyecciones_categoria=proyecciones_cat,
-            alertas_inventario=alertas_inv,
-            insights=insights,
-            sucursal_filtrada=sucursal_filtro.upper(),
-            horizonte_dias=horizonte_dias
+            resumen_general={
+                "total_transacciones_historicas": len(df), "transacciones_completadas": len(completed),
+                "transacciones_canceladas": len(df) - len(completed),
+                "total_ingresos_historicos_bs": round(total_revenue, 2),
+                "ticket_promedio_bs": round(total_revenue / max(len(completed), 1), 2),
+                "total_unidades_vendidas": int(completed["cantidad"].sum()),
+                "periodo_analizado": f"{df['fecha_dt'].min().date()} al {df['fecha_dt'].max().date()}",
+                "sucursales_activas": 2,
+            },
+            sucursales=self._resumen_sucursales(df), metricas_modelo=final_metrics,
+            proyecciones_diarias=projections,
+            proyecciones_categoria=self._proyeccion_categorias(filtered_completed, projected_revenue),
+            alertas_inventario=[], insights=insights, sucursal_filtrada=filter_code,
+            horizonte_dias=horizonte_dias,
         )
 
 
-# Singleton del servicio
 predicciones_service = PrediccionVentasService()

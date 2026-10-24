@@ -50,6 +50,11 @@ CREATE TABLE IF NOT EXISTS erp.usuario (
     apellidos VARCHAR(100) NOT NULL,
     email VARCHAR(150) UNIQUE NOT NULL,
     hash_contrasena VARCHAR(255) NOT NULL,
+    esta_verificado BOOLEAN NOT NULL DEFAULT TRUE,
+    codigo_verificacion VARCHAR(10) NULL,
+    codigo_verificacion_expira TIMESTAMPTZ NULL,
+    codigo_recuperacion VARCHAR(10) NULL,
+    codigo_recuperacion_expira TIMESTAMPTZ NULL,
     fecha_creacion TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -132,12 +137,17 @@ CREATE TABLE IF NOT EXISTS erp.kardex_fisico (
 -- ==========================================================
 CREATE TABLE IF NOT EXISTS ia.version_modelo_ia (
     id_version SERIAL PRIMARY KEY,
-    hash_archivo VARCHAR(255) UNIQUE NOT NULL,
+    algoritmo VARCHAR(100),
+    hash_archivo VARCHAR(255) NOT NULL,
     metric_accuracy DECIMAL(5,4),
     metric_rmse DECIMAL(5,4),
     aprobado_produccion BOOLEAN DEFAULT FALSE,
     fecha_entrenamiento TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_version_modelo_ia_activa_algoritmo
+    ON ia.version_modelo_ia (algoritmo)
+    WHERE aprobado_produccion = TRUE;
 
 CREATE TABLE IF NOT EXISTS ia.regla_inferencia_cart (
     id_regla SERIAL PRIMARY KEY,
@@ -152,7 +162,7 @@ CREATE TABLE IF NOT EXISTS ia.perfil_biometrico (
     id_usuario INT NOT NULL REFERENCES erp.usuario(id_usuario),
     id_somatotipo INT REFERENCES parametros.catalogo_somatotipo(id_somatotipo),
     coordenadas_espaciales JSONB NOT NULL,
-    precision_captura DECIMAL(5,4),
+    precision_captura DECIMAL(8,6),
     estatura_cm DECIMAL(5,2),
     peso_kg DECIMAL(5,2),
     fecha_captura TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
