@@ -13,8 +13,8 @@
 ## 2. Artefactos Generados y Registro de Versionamiento
 | Algoritmo | Archivo Joblib | SHA-256 | ID Versión BD | Aprobado Producción |
 |---|---|---|---|---|
-| **RF_REGRESOR_DEMANDA** | `modelo_demanda_v1.joblib` | `b71f186f3829973813476f23e46d85f9a624248b74a2035851b7d5c374fca2ef` | 243 | FALSE |
-| **RF_CLASIFICADOR_QUIEBRE** | `modelo_quiebre_v1.joblib` | `b68f8a8663caa9a054a6be7411c03c46cb8eed6cb366ded0080c0d933ccec754` | 244 | FALSE |
+| **RF_REGRESOR_DEMANDA** | `modelo_demanda_v1.joblib` | `b71f186f3829973813476f23e46d85f9a624248b74a2035851b7d5c374fca2ef` | 247 | FALSE |
+| **RF_CLASIFICADOR_QUIEBRE** | `modelo_quiebre_v1.joblib` | `8f085de777ee904aa9ea47b822327d8f81132efb7826022f9a1a364ebd260b5c` | 248 | FALSE |
 
 ## 3. Top-10 Feature Importances: Modelo A (Demanda Próxima Semana)
 | Ranking | Feature | Importancia Relativa | Importancia % |
