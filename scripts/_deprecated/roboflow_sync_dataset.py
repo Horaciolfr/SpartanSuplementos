@@ -27,7 +27,7 @@ from services.ia.pose_service import pose_inference_service
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("roboflow_sync")
 
-ROBOFLOW_API_KEY = os.getenv("ROBOFLOW_API_KEY", "eW2FCKVBcWu130lj6GKr")
+ROBOFLOW_API_KEY = os.getenv("ROBOFLOW_API_KEY", "")
 ROBOFLOW_WORKSPACE = "horacios-workspace-uhrah"
 ROBOFLOW_PROJECT = "spartan-sup-analisis"
 OUTPUT_CSV = os.path.join(PROJECT_ROOT, "services", "ia", "data", "dataset_roboflow_extracted.csv")

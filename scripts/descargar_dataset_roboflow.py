@@ -11,7 +11,11 @@ print(f"Iniciando descarga de dataset Roboflow en: {TARGET_DIR}")
 # Cambiar directorio actual al destino para que Roboflow descargue allí
 os.chdir(str(TARGET_DIR))
 
-rf = Roboflow(api_key="eW2FCKVBcWu130lj6GKr")
+api_key = os.getenv("ROBOFLOW_API_KEY", "")
+if not api_key:
+    raise ValueError("La variable de entorno ROBOFLOW_API_KEY no está configurada.")
+
+rf = Roboflow(api_key=api_key)
 project = rf.workspace("borre3").project("proyecto-somatotipos-yxpqc")
 version = project.version(2)
 dataset = version.download("yolov8")

@@ -4,7 +4,7 @@ Sistema transaccional de alto rendimiento para la gestión de inventario deporti
 
 ---
 
-## 🏛️ Arquitectura del Sistema
+## Arquitectura del Sistema
 
 El proyecto implementa una **arquitectura desacoplada en 4 capas contenerizadas**:
 
@@ -24,7 +24,7 @@ graph TD
 
 ---
 
-## 📁 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```text
 Proyecto SS/
@@ -82,7 +82,7 @@ Proyecto SS/
 
 ---
 
-## 🛡️ Buenas Prácticas de Seguridad Implementadas
+## Buenas Practicas de Seguridad Implementadas
 
 1. **Gestión Hermética de Secretos**: `.env`, `.env.docker` y variantes están estrictamente excluidos de control de versiones mediante `.gitignore`. Se proporcionan archivos `.example` debidamente sanitizados.
 2. **CORS con Orígenes Confiables**: Se eliminó el comodín inseguro `*` en presencia de credenciales; ahora se controlan orígenes específicos vía variable de entorno `CORS_ORIGINS`.
@@ -98,7 +98,7 @@ Proyecto SS/
 
 ---
 
-## 🚀 Despliegue Rápido con Docker
+## Despliegue Rapido con Docker
 
 ### Requisitos Previos
 - Docker Desktop o Docker Engine con Docker Compose instalado.
@@ -120,7 +120,7 @@ Proyecto SS/
 
 ---
 
-## 🧪 Ejecución de Pruebas Automatizadas
+## Ejecucion de Pruebas Automatizadas
 
 El proyecto cuenta con una suite integral de 13 pruebas que validan autenticación, RBAC y transaccionalidad ACID:
 
@@ -134,7 +134,7 @@ El proyecto cuenta con una suite integral de 13 pruebas que validan autenticaci�
 
 ---
 
-## 🛠️ Ejecución en Entorno Local (Desarrollo sin Docker)
+## Ejecucion en Entorno Local (Desarrollo sin Docker)
 
 ### Backend:
 ```bash
